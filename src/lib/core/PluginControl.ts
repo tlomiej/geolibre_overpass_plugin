@@ -420,7 +420,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
 
     const placeholder = document.createElement('p');
     placeholder.className = 'plugin-control-placeholder';
-    placeholder.textContent = 'Add your custom plugin content here.';
+    placeholder.textContent = 'aaaa Add your custom plugin content here.';
 
     // Demonstrate the GeoLibre host callbacks end to end. These buttons drive
     // `openFiles()` and `loadFromUrl()`, which call the host-provided pickers
