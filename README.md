@@ -192,7 +192,7 @@ const unregister = app.registerRightPanel?.({
   title: "Workbench",
   defaultWidth: 320,
   render(container) {
-    container.textContent = "Rendered by the plugin via registerRightPanel().";
+    container.textContent = "!!!!Rendered by the plugin via registerRightPanel().";
     return () => {
       // optional cleanup, run on close/unregister
     };

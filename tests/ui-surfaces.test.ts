@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
+import { plugin } from "../src/geolibre";
 import type {
   GeoLibreAppAPI,
   GeoLibreControl,
@@ -28,6 +29,12 @@ function createApp(overrides: Partial<GeoLibreAppAPI<GeoLibreControl>> = {}) {
   };
   return app;
 }
+
+describe("plugin identity", () => {
+  it("uses the requested OverpassTurbo plugin ID", () => {
+    expect(plugin.id).toBe("overpssturboplugin");
+  });
+});
 
 describe("registerTemplateFloatingPanel", () => {
   it("registers the floating panel and renders into the container", () => {
