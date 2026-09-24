@@ -69,7 +69,7 @@ function isPluginState(value: unknown): value is Partial<PluginState> {
 }
 
 export const plugin: GeoLibrePlugin<PluginControl> = {
-  id: "geolibre-plugin-template",
+  id: "overpssturboplugin",
   name: "GeoLibre Plugin Template",
   version: "0.1.0",
   urlParameterNames: [PLUGIN_DATA_PARAM],

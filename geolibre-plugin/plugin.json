@@ -1,5 +1,5 @@
 {
-  "id": "geolibre-plugin-template",
+  "id": "overpssturboplugin",
   "name": "GeoLibre Plugin Template",
   "version": "0.1.0",
   "entry": "dist/index.js",
