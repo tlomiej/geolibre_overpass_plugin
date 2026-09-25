@@ -69,9 +69,9 @@ function isPluginState(value: unknown): value is Partial<PluginState> {
 }
 
 export const plugin: GeoLibrePlugin<PluginControl> = {
-  id: "overpssturboplugin",
-  name: "GeoLibre Plugin Template",
-  version: "0.1.0",
+  id: "overpass-turbo-plugin",
+  name: "Overpass Turbo Plugin",
+  version: "0.1.1",
   urlParameterNames: [PLUGIN_DATA_PARAM],
   activate(app) {
     control = control ?? createControl(app);
