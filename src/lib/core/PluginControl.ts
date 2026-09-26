@@ -433,24 +433,13 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     logButton.className = 'plugin-control-action';
     logButton.textContent = 'Klik';
     logButton.addEventListener('click', () => {
-      console.log('klik');
+      window.alert('Pobieram');
     });
 
     // Demonstrate the GeoLibre host callbacks end to end. These buttons drive
     // `openFiles()` and `loadFromUrl()`, which call the host-provided pickers
     // and native-layer registration. Outside GeoLibre they fall back to no-ops.
-    const actions = document.createElement('div');
-    actions.className = 'plugin-control-actions';
 
-    const openFolderBtn = document.createElement('button');
-    openFolderBtn.type = 'button';
-    openFolderBtn.className = 'plugin-control-action';
-    openFolderBtn.textContent = 'Open folder…';
-    openFolderBtn.addEventListener('click', () => {
-      void this.openFiles();
-    });
-
-    actions.appendChild(openFolderBtn);
 
     const status = document.createElement('div');
     status.className = 'plugin-control-status';
