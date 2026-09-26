@@ -420,7 +420,13 @@ export class PluginControl implements IControl, DeepLinkConsumer {
 
     const placeholder = document.createElement('p');
     placeholder.className = 'plugin-control-placeholder';
-    placeholder.textContent = 'aaabbbbaaaa  tes tAdd your custom plugin content here.';
+    placeholder.textContent = 'Add your custom plugin content here.';
+
+    const customTextarea = document.createElement('textarea');
+    customTextarea.className = 'plugin-control-textarea';
+    customTextarea.placeholder = 'Type your custom text here...';
+    customTextarea.rows = 4;
+    customTextarea.setAttribute('aria-label', 'Custom plugin text');
 
     // Demonstrate the GeoLibre host callbacks end to end. These buttons drive
     // `openFiles()` and `loadFromUrl()`, which call the host-provided pickers
@@ -444,6 +450,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     this._status = status;
 
     content.appendChild(placeholder);
+    content.appendChild(customTextarea);
     content.appendChild(actions);
     content.appendChild(status);
 
