@@ -449,7 +449,6 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     content.appendChild(placeholder);
     content.appendChild(customTextarea);
     content.appendChild(logButton);
-    content.appendChild(actions);
     content.appendChild(status);
 
     panel.appendChild(header);
