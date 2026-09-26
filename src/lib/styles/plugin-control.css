@@ -275,7 +275,24 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.plugin-control-input:focus {
+.plugin-control-textarea {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 80px;
+  resize: vertical;
+  padding: 8px 10px;
+  font-size: 14px;
+  color: var(--pc-input-text);
+  background: var(--pc-input-bg);
+  border: 1px solid var(--pc-input-border);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.plugin-control-input:focus,
+.plugin-control-textarea:focus {
   border-color: var(--pc-accent);
   box-shadow: 0 0 0 3px var(--pc-accent-ring);
 }
