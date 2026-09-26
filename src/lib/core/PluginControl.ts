@@ -428,6 +428,14 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     customTextarea.rows = 4;
     customTextarea.setAttribute('aria-label', 'Custom plugin text');
 
+    const logButton = document.createElement('button');
+    logButton.type = 'button';
+    logButton.className = 'plugin-control-action';
+    logButton.textContent = 'Klik';
+    logButton.addEventListener('click', () => {
+      console.log('klik');
+    });
+
     // Demonstrate the GeoLibre host callbacks end to end. These buttons drive
     // `openFiles()` and `loadFromUrl()`, which call the host-provided pickers
     // and native-layer registration. Outside GeoLibre they fall back to no-ops.
@@ -451,6 +459,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
 
     content.appendChild(placeholder);
     content.appendChild(customTextarea);
+    content.appendChild(logButton);
     content.appendChild(actions);
     content.appendChild(status);
 
