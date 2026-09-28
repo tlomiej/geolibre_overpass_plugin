@@ -313,7 +313,8 @@ export class PluginControl implements IControl, DeepLinkConsumer {
   /**
    * Unregister every native layer this control registered with the host.
    */
-  private _clearNativeLayers(): void {
+  private 
+  _clearNativeLayers(): void {
     // Reset bookkeeping up front so internal state stays consistent even if a
     // host callback throws partway through teardown.
     const ids = [...this._registeredNativeLayerIds];
@@ -431,7 +432,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     const logButton = document.createElement('button');
     logButton.type = 'button';
     logButton.className = 'plugin-control-action';
-    logButton.textContent = 'Klik';
+    logButton.textContent = 'Download Data';
     logButton.addEventListener('click', () => {
       window.alert('Pobieram');
     });
