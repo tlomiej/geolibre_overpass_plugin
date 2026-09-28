@@ -6,6 +6,7 @@ import type {
   PluginControlEventHandler,
 } from './types';
 import type { DeepLinkConsumer } from '../utils/deep-link';
+import { fetchOverpassPois } from '../utils/overpass-poi';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 
 /**
@@ -299,14 +300,16 @@ export class PluginControl implements IControl, DeepLinkConsumer {
    *
    * @param layer - The native layer registration payload
    */
-  private _registerNativeLayer(layer: GeoLibreNativeLayerRegistration): void {
+  private _registerNativeLayer(layer: GeoLibreNativeLayerRegistration): boolean {
     try {
       this._options.registerNativeLayer(layer);
       if (!this._registeredNativeLayerIds.includes(layer.id)) {
         this._registeredNativeLayerIds.push(layer.id);
       }
+      return true;
     } catch {
       this._setStatus('Failed to register native layer.');
+      return false;
     }
   }
 
@@ -433,8 +436,47 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     downloadButton.type = 'button';
     downloadButton.className = 'plugin-control-action';
     downloadButton.textContent = 'Download Data';
-    downloadButton.addEventListener('click', () => {
-      window.alert('Pobieram');
+    downloadButton.addEventListener('click', async () => {
+      const mapBounds = this._map?.getBounds();
+      if (!mapBounds) {
+        this._setStatus('Map is not available.');
+        return;
+      }
+
+      downloadButton.disabled = true;
+      this._setStatus('Pobieram POI...');
+      try {
+        const geojson = await fetchOverpassPois({
+          south: mapBounds.getSouth(),
+          west: mapBounds.getWest(),
+          north: mapBounds.getNorth(),
+          east: mapBounds.getEast(),
+        });
+        if (geojson.features.length === 0) {
+          this._setStatus('Nie znaleziono POI w widocznym obszarze.');
+          return;
+        }
+
+        const registered = this._registerNativeLayer({
+          id: 'overpass-poi',
+          name: 'Overpass POI',
+          geojson,
+          nativeLayerIds: ['overpass-poi-layer'],
+          sourceIds: ['overpass-poi-source'],
+          opacity: 1,
+          style: { circleRadius: 6, fillColor: '#e4572e' },
+          metadata: { source: 'Overpass API', featureCount: geojson.features.length },
+        });
+        if (registered) {
+          this._setStatus(`Wyświetlono POI: ${geojson.features.length}.`);
+        }
+      } catch (error) {
+        this._setStatus(
+          error instanceof Error ? error.message : 'Unable to download POI.',
+        );
+      } finally {
+        downloadButton.disabled = false;
+      }
     });
 
     // Demonstrate the GeoLibre host callbacks end to end. These buttons drive
