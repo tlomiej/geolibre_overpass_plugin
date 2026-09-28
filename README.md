@@ -303,7 +303,7 @@ const map = new maplibregl.Map({
 
 map.on("load", () => {
   const control = new PluginControl({
-    title: "My Plugin",
+    title: "Overpass Turbo Plugin",
     collapsed: false,
     panelWidth: 300,
   });
@@ -349,7 +349,7 @@ function App() {
       {map && (
         <PluginControlReact
           map={map}
-          title="My Plugin"
+          title="Overpass Turbo Plugin"
           collapsed={state.collapsed}
           onStateChange={(newState) => console.log(newState)}
         />
