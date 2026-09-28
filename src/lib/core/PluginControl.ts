@@ -429,11 +429,11 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     customTextarea.rows = 4;
     customTextarea.setAttribute('aria-label', 'Custom plugin text');
 
-    const logButton = document.createElement('button');
-    logButton.type = 'button';
-    logButton.className = 'plugin-control-action';
-    logButton.textContent = 'Download Data';
-    logButton.addEventListener('click', () => {
+    const downloadButton = document.createElement('button');
+    downloadButton.type = 'button';
+    downloadButton.className = 'plugin-control-action';
+    downloadButton.textContent = 'Download Data';
+    downloadButton.addEventListener('click', () => {
       window.alert('Pobieram');
     });
 
@@ -449,7 +449,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
 
     content.appendChild(placeholder);
     content.appendChild(customTextarea);
-    content.appendChild(logButton);
+    content.appendChild(downloadButton);
     content.appendChild(status);
 
     panel.appendChild(header);
