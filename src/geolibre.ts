@@ -33,7 +33,11 @@ function createControl(app: AppAPI): PluginControl {
     // Bind optional host capabilities; each falls back to a no-op on hosts (or
     // standalone usage) that do not provide them.
     pickFiles: () => app.pickLocalDirectoryFiles?.() ?? Promise.resolve(null),
-    registerNativeLayer: (layer) => app.registerExternalNativeLayer?.(layer),
+    registerNativeLayer: (layer) => {
+      if (!app.registerExternalNativeLayer) return false;
+      app.registerExternalNativeLayer(layer);
+      return true;
+    },
     unregisterNativeLayer: (id) => app.unregisterExternalNativeLayer?.(id),
   });
 
