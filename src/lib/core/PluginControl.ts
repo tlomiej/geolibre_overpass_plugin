@@ -23,7 +23,7 @@ const DEFAULT_OPTIONS: Required<PluginControlOptions> = {
   panelWidth: 300,
   className: '',
   pickFiles: () => Promise.resolve(null),
-  registerNativeLayer: () => undefined,
+  registerNativeLayer: () => false,
   unregisterNativeLayer: () => undefined,
 };
 
@@ -58,6 +58,10 @@ export class PluginControl implements IControl, DeepLinkConsumer {
   // Ids of native layers this control has registered with the host, so they can
   // be unregistered when the control is removed.
   private _registeredNativeLayerIds: string[] = [];
+  private _registeredMapLayers = new globalThis.Map<
+    string,
+    { sourceIds: string[]; layerIds: string[] }
+  >();
 
   // Panel positioning handlers
   private _resizeHandler: (() => void) | null = null;
@@ -130,6 +134,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
 
     // Hand any native layers this control registered back to the host.
     this._clearNativeLayers();
+    this._clearMapLayers();
 
     // Remove panel from map container
     this._panel?.parentNode?.removeChild(this._panel);
@@ -302,7 +307,10 @@ export class PluginControl implements IControl, DeepLinkConsumer {
    */
   private _registerNativeLayer(layer: GeoLibreNativeLayerRegistration): boolean {
     try {
-      this._options.registerNativeLayer(layer);
+      const registeredByHost = this._options.registerNativeLayer(layer);
+      if (registeredByHost === false) {
+        return this._registerMapLayer(layer);
+      }
       if (!this._registeredNativeLayerIds.includes(layer.id)) {
         this._registeredNativeLayerIds.push(layer.id);
       }
@@ -313,11 +321,73 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     }
   }
 
+  private _registerMapLayer(layer: GeoLibreNativeLayerRegistration): boolean {
+    const map = this._map;
+    const sourceId = layer.sourceIds[0];
+    if (!map || !layer.geojson || !sourceId || layer.nativeLayerIds.length === 0) {
+      this._setStatus('Unable to add layer to the map.');
+      return false;
+    }
+
+    this._removeMapLayers(this._registeredMapLayers.get(layer.id));
+    try {
+      map.addSource(sourceId, {
+        type: 'geojson',
+        data: layer.geojson as never,
+      });
+      for (const layerId of layer.nativeLayerIds) {
+        map.addLayer({
+          id: layerId,
+          type: 'circle',
+          source: sourceId,
+          paint: {
+            'circle-radius': layer.style.circleRadius ?? 6,
+            'circle-color': layer.style.fillColor ?? '#e4572e',
+            'circle-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
+            ...(layer.style.strokeColor
+              ? { 'circle-stroke-color': layer.style.strokeColor }
+              : {}),
+            ...(layer.style.strokeWidth !== undefined
+              ? { 'circle-stroke-width': layer.style.strokeWidth }
+              : {}),
+          },
+        });
+      }
+      this._registeredMapLayers.set(layer.id, {
+        sourceIds: [sourceId],
+        layerIds: [...layer.nativeLayerIds],
+      });
+      return true;
+    } catch {
+      this._removeMapLayers({ sourceIds: [sourceId], layerIds: [...layer.nativeLayerIds] });
+      this._setStatus('Failed to add layer to the map.');
+      return false;
+    }
+  }
+
+  private _removeMapLayers(
+    registration: { sourceIds: string[]; layerIds: string[] } | undefined,
+  ): void {
+    if (!registration || !this._map) return;
+    for (const layerId of registration.layerIds) {
+      if (this._map.getLayer(layerId)) this._map.removeLayer(layerId);
+    }
+    for (const sourceId of registration.sourceIds) {
+      if (this._map.getSource(sourceId)) this._map.removeSource(sourceId);
+    }
+  }
+
+  private _clearMapLayers(): void {
+    for (const registration of this._registeredMapLayers.values()) {
+      this._removeMapLayers(registration);
+    }
+    this._registeredMapLayers.clear();
+  }
+
   /**
    * Unregister every native layer this control registered with the host.
    */
-  private 
-  _clearNativeLayers(): void {
+  private _clearNativeLayers(): void {
     // Reset bookkeeping up front so internal state stays consistent even if a
     // host callback throws partway through teardown.
     const ids = [...this._registeredNativeLayerIds];
@@ -374,11 +444,9 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     toggleBtn.setAttribute('aria-label', this._options.title);
     toggleBtn.innerHTML = `
       <span class="plugin-control-icon">
-        <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/>
-          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <rect x="1" y="1" width="22" height="22" rx="5" fill="#f6c845" stroke="none"/>
+          <text x="12" y="16" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#263238" stroke="none">OT</text>
         </svg>
       </span>
     `;
