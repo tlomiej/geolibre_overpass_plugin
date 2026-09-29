@@ -48,7 +48,7 @@ export interface PluginControlOptions {
    * `app.registerExternalNativeLayer`; defaults to a no-op so the control also
    * works as a standalone MapLibre control.
    */
-  registerNativeLayer?: (layer: GeoLibreNativeLayerRegistration) => void;
+  registerNativeLayer?: (layer: GeoLibreNativeLayerRegistration) => void | boolean;
 
   /**
    * Host callback to remove a native layer previously registered with
