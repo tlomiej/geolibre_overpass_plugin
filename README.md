@@ -36,7 +36,7 @@ npm run package:geolibre
 This creates:
 
 ```text
-geolibre-plugin/geolibre-plugin-template-0.1.0.zip
+geolibre-plugin/geolibre-plugin-template-0.1.2.zip
 ```
 
 The generated zip contains:
