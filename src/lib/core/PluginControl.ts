@@ -8,6 +8,7 @@ import type {
 import type { DeepLinkConsumer } from '../utils/deep-link';
 import { fetchOverpassPois } from '../utils/overpass-poi';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
+import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 
 /**
  * Default options for the PluginControl.
@@ -294,7 +295,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
       nativeLayerIds: ['plugin-template-data-layer'],
       sourceIds: ['plugin-template-data-source'],
       opacity: 1,
-      style: { circleRadius: 5, fillColor: '#2f7ed8' },
+      style: { circleRadius: 5, fillColor: MAP_COLOR_TOKENS.templateDataFill },
       metadata: { sourceUrl: value },
     });
   }
@@ -342,7 +343,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
           source: sourceId,
           paint: {
             'circle-radius': layer.style.circleRadius ?? 6,
-            'circle-color': layer.style.fillColor ?? '#e4572e',
+            'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
             'circle-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
             ...(layer.style.strokeColor
               ? { 'circle-stroke-color': layer.style.strokeColor }
@@ -532,7 +533,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
           nativeLayerIds: ['overpass-poi-layer'],
           sourceIds: ['overpass-poi-source'],
           opacity: 1,
-          style: { circleRadius: 6, fillColor: '#e4572e' },
+          style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill },
           metadata: { source: 'Overpass API', featureCount: geojson.features.length },
         });
         if (registered) {
