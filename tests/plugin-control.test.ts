@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
-import { fetchOverpassPois } from '../src/lib/utils/overpass-poi';
+import { fetchOverpassPois } from '../src/lib/core/overpass-poi';
 
 vi.mock('../src/lib/utils/overpass-poi', () => ({
   fetchOverpassPois: vi.fn(),
