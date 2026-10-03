@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
-import { fetchOverpassPois } from '../utils/overpass-poi';
+import { fetchOverpassPois } from './overpass-poi';
 
 export interface PluginContentContext {
   getMap: () => MapLibreMap | undefined;
