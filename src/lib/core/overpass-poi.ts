@@ -1,31 +1,8 @@
-export interface OverpassBounds {
-  south: number;
-  west: number;
-  north: number;
-  east: number;
-}
-
-export interface OverpassPoiFeatureCollection {
-  type: 'FeatureCollection';
-  features: Array<{
-    type: 'Feature';
-    id: string;
-    geometry: {
-      type: 'Point';
-      coordinates: [number, number];
-    };
-    properties: Record<string, unknown>;
-  }>;
-}
-
-interface OverpassElement {
-  type: string;
-  id: number;
-  lat?: number;
-  lon?: number;
-  center?: { lat: number; lon: number };
-  tags?: Record<string, string>;
-}
+import type {
+  OverpassBounds,
+  OverpassElement,
+  OverpassPoiFeatureCollection,
+} from './PluginModels';
 
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
 
@@ -93,7 +70,7 @@ export function overpassResponseToGeoJSON(
   return { type: 'FeatureCollection', features };
 }
 
-export async function fetchOverpassPois(
+export async function fetchOverpssData(
   bounds: OverpassBounds,
 ): Promise<OverpassPoiFeatureCollection> {
   const response = await fetch(OVERPASS_ENDPOINT, {
