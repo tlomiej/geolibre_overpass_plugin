@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
-import { fetchOverpassPois } from '../src/lib/core/overpass-poi';
+import { fetchOverpssData } from '../src/lib/core/overpass-poi';
 
 vi.mock('../src/lib/utils/overpass-poi', () => ({
-  fetchOverpassPois: vi.fn(),
+  fetchOverpssData: vi.fn(),
 }));
 
 describe('PluginControl native layer fallback', () => {
@@ -20,7 +20,7 @@ describe('PluginControl native layer fallback', () => {
         },
       ],
     };
-    vi.mocked(fetchOverpassPois).mockResolvedValueOnce(geojson);
+    vi.mocked(fetchOverpssData).mockResolvedValueOnce(geojson);
 
     const mapContainer = document.createElement('div');
     document.body.appendChild(mapContainer);
