@@ -1,27 +1,27 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
-import { fetchOverpassPois } from './overpass-poi';
+import { fetchOverpssData } from './overpass-poi';
 
 export interface PluginContentContext {
   getMap: () => MapLibreMap | undefined;
   setStatus: (message: string) => void;
   registerNativeLayer: (layer: GeoLibreNativeLayerRegistration) => boolean;
-  fetchPois?: typeof fetchOverpassPois;
+  fetchData?: typeof fetchOverpssData;
 }
 
 export function createPluginContent({
   getMap,
   setStatus,
   registerNativeLayer,
-  fetchPois = fetchOverpassPois,
+  fetchData = fetchOverpssData,
 }: PluginContentContext): { content: HTMLElement; status: HTMLElement } {
   const content = document.createElement('div');
   content.className = 'plugin-control-content';
 
   const placeholder = document.createElement('p');
   placeholder.className = 'plugin-control-placeholder';
-  placeholder.textContent = 'Add your custom plugin content here.1';
+  placeholder.textContent = 'Add your custom plugin content here.2';
 
   const customTextarea = document.createElement('textarea');
   customTextarea.className = 'plugin-control-textarea';
@@ -44,7 +44,7 @@ export function createPluginContent({
     downloadButton.disabled = true;
     setStatus('Pobieram POI...');
     try {
-      const geojson = await fetchPois({
+      const geojson = await fetchData({
         south: mapBounds.getSouth(),
         west: mapBounds.getWest(),
         north: mapBounds.getNorth(),
