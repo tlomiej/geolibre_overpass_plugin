@@ -6,7 +6,7 @@ import type {
   PluginControlEventHandler,
 } from './types';
 import type { DeepLinkConsumer } from '../utils/deep-link';
-import { fetchOverpassPois } from './overpass-poi';
+import { fetchOverpssData } from './overpass-poi';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { createPluginContent } from './plugin-content';
@@ -493,7 +493,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
       setStatus: (message: string) => this._setStatus(message),
       registerNativeLayer: (layer: GeoLibreNativeLayerRegistration) =>
         this._registerNativeLayer(layer),
-      fetchPois: fetchOverpassPois,
+      fetchData: fetchOverpssData,
     });
     this._status = status;
 
