@@ -18,7 +18,13 @@ describe('buildOverpassQuery', () => {
     );
 
     expect(query).toBe('[out:json][timeout:25]; nwr["building"](51.4,-0.2,51.6,0.1); out center tags;');
-    expect(DEFAULT_OVERPASS_QUERY).toContain('nwr["amenity"]({{bbox}});');
+    expect(DEFAULT_OVERPASS_QUERY).not.toContain('{{bbox}}');
+    expect(buildOverpassQuery(DEFAULT_OVERPASS_QUERY, {
+      south: 51.4,
+      west: -0.2,
+      north: 51.6,
+      east: 0.1,
+    })).toContain('nwr["amenity"](51.4,-0.2,51.6,0.1);');
     expect(DEFAULT_OVERPASS_QUERY).not.toContain('[out:json]');
   });
 });

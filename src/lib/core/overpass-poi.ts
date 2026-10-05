@@ -9,12 +9,18 @@ import type {
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
 
 export const DEFAULT_OVERPASS_QUERY =
-  '[timeout:25];\n(\n  nwr["amenity"]({{bbox}});\n);\nout geom tags;';
+  '[timeout:25];\n(\n  nwr["amenity"];\n);\nout geom tags;';
 
 export function buildOverpassQuery(query: string, bounds: OverpassBounds): string {
   const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
-  const queryBody = query.trim().replace(/^\[out:json\]/i, '').trimStart();
-  return `[out:json]${queryBody.split('{{bbox}}').join(bbox)}`;
+  const queryBody = query.trim().replace(/^\[out:json\]\s*/i, '');
+  const boundedQuery = queryBody.includes('{{bbox}}')
+    ? queryBody.replace(/\{\{bbox\}\}/g, bbox)
+    : queryBody.replace(
+        /\b(node|way|relation|area|nwr)((?:\s*\[[^\]]*\])*)\s*;/g,
+        `$1$2(${bbox});`,
+      );
+  return `[out:json]${boundedQuery}`;
 }
 
 export function overpassResponseToGeoJSON(
