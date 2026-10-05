@@ -8,7 +8,7 @@ import {
 describe('buildOverpassQuery', () => {
   it('inserts map bounds into an editable query without restricting its filters', () => {
     const query = buildOverpassQuery(
-      '[out:json]; nwr["building"]({{bbox}}); out center tags;',
+      '[timeout:25]; nwr["building"]({{bbox}}); out center tags;',
       {
       south: 51.4,
       west: -0.2,
@@ -17,8 +17,9 @@ describe('buildOverpassQuery', () => {
       },
     );
 
-    expect(query).toBe('[out:json]; nwr["building"](51.4,-0.2,51.6,0.1); out center tags;');
+    expect(query).toBe('[out:json][timeout:25]; nwr["building"](51.4,-0.2,51.6,0.1); out center tags;');
     expect(DEFAULT_OVERPASS_QUERY).toContain('nwr["amenity"]({{bbox}});');
+    expect(DEFAULT_OVERPASS_QUERY).not.toContain('[out:json]');
   });
 });
 
