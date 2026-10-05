@@ -9,7 +9,7 @@ import type {
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 
 export const DEFAULT_OVERPASS_QUERY =
-  '[timeout:25];\n(\n  nwr["amenity"];\n);\nout geom tags;';
+  '[timeout:25];\n(\n  nwr["amenity"];\n  nwr["shop"];\n  nwr["tourism"];\n  nwr["leisure"];\n);\nout geom tags;';
 
 export function buildOverpassQuery(
   query: string,
