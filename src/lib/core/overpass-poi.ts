@@ -7,11 +7,12 @@ import type {
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
 
 export const DEFAULT_OVERPASS_QUERY =
-  '[out:json][timeout:25];\n(\n  nwr["amenity"]({{bbox}});\n);\nout center tags;';
+  '[timeout:25];\n(\n  nwr["amenity"]({{bbox}});\n);\nout center tags;';
 
 export function buildOverpassQuery(query: string, bounds: OverpassBounds): string {
   const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
-  return query.split('{{bbox}}').join(bbox);
+  const queryBody = query.trim().replace(/^\[out:json\]/i, '').trimStart();
+  return `[out:json]${queryBody.split('{{bbox}}').join(bbox)}`;
 }
 
 export function overpassResponseToGeoJSON(
