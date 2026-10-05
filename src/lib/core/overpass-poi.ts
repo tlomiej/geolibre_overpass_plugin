@@ -9,7 +9,7 @@ import type {
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 
 export const DEFAULT_OVERPASS_QUERY =
-  '[timeout:25];\n(\n  nwr["amenity"];\n  nwr["shop"];\n  nwr["tourism"];\n  nwr["leisure"];\n);\nout geom tags;';
+  '[timeout:25];\n(\n  nwr;\n);';
 
 export function buildOverpassQuery(
   query: string,
@@ -21,7 +21,12 @@ export function buildOverpassQuery(
     /\b(node|way|relation|area|nwr)((?:\s*\[[^\]]*\])*)\s*;/g,
     `$1$2(${bbox});`,
   );
-  return `[out:json]${boundedQuery}`;
+  const outputQuery = /\bout\s+(?:ids|skel|body|tags|meta|geom|center|count|asc|qt|bb)\b[^;]*;/i.test(
+    boundedQuery,
+  )
+    ? boundedQuery
+    : `${boundedQuery}\nout geom tags;`;
+  return `[out:json]${outputQuery}`;
 }
 
 export function overpassResponseToGeoJSON(

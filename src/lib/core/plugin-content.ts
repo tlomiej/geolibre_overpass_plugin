@@ -66,7 +66,7 @@ export function createPluginContent({
         ],
         sourceIds: ['overpass-data-source'],
         opacity: 1,
-        style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill },
+        style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill, fillOpacity: 0.65 },
         metadata: { source: 'Overpass API', featureCount: geojson.features.length },
       });
       if (registered) {

@@ -82,6 +82,7 @@ describe('PluginControl native layer fallback', () => {
         id: 'overpass-data-fill-layer',
         type: 'fill',
         source: 'overpass-data-source',
+        paint: expect.objectContaining({ 'fill-opacity': 0.65 }),
       }),
     );
     expect(map.addLayer).toHaveBeenNthCalledWith(
@@ -90,6 +91,7 @@ describe('PluginControl native layer fallback', () => {
         id: 'overpass-data-line-layer',
         type: 'line',
         source: 'overpass-data-source',
+        paint: expect.objectContaining({ 'line-opacity': 0.65 }),
       }),
     );
     expect(map.addLayer).toHaveBeenNthCalledWith(
@@ -98,6 +100,7 @@ describe('PluginControl native layer fallback', () => {
         id: 'overpass-data-point-layer',
         type: 'circle',
         source: 'overpass-data-source',
+        paint: expect.objectContaining({ 'circle-opacity': 0.65 }),
       }),
     );
     expect(mapContainer.querySelector('.plugin-control-status')?.textContent)

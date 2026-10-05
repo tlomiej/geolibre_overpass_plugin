@@ -25,10 +25,9 @@ describe('buildOverpassQuery', () => {
       north: 51.6,
       east: 0.1,
     });
-    expect(defaultQuery).toContain('nwr["amenity"](51.4,-0.2,51.6,0.1);');
-    expect(defaultQuery).toContain('nwr["shop"](51.4,-0.2,51.6,0.1);');
-    expect(defaultQuery).toContain('nwr["tourism"](51.4,-0.2,51.6,0.1);');
-    expect(defaultQuery).toContain('nwr["leisure"](51.4,-0.2,51.6,0.1);');
+    expect(defaultQuery).toContain('nwr(51.4,-0.2,51.6,0.1);');
+    expect(defaultQuery).toContain('out geom tags;');
+    expect(DEFAULT_OVERPASS_QUERY).not.toContain('out geom tags;');
     expect(DEFAULT_OVERPASS_QUERY).not.toContain('[out:json]');
   });
 });
