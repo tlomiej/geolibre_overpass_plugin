@@ -51,7 +51,7 @@ export function createPluginContent({
         east: mapBounds.getEast(),
       }, customTextarea.value);
       if (geojson.features.length === 0) {
-        setStatus('Zapytanie nie zwróciło obiektów punktowych.');
+        setStatus('Zapytanie nie zwróciło obiektów z obsługiwaną geometrią.');
         return;
       }
 
@@ -59,7 +59,11 @@ export function createPluginContent({
         id: 'overpass-data',
         name: 'Overpass data',
         geojson,
-        nativeLayerIds: ['overpass-data-layer'],
+        nativeLayerIds: [
+          'overpass-data-fill-layer',
+          'overpass-data-line-layer',
+          'overpass-data-point-layer',
+        ],
         sourceIds: ['overpass-data-source'],
         opacity: 1,
         style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill },
@@ -69,7 +73,7 @@ export function createPluginContent({
         setStatus(`Wyświetlono obiekty: ${geojson.features.length}.`);
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Unable to download POI.');
+      setStatus(error instanceof Error ? error.message : 'Unable to load Overpass data.');
     } finally {
       downloadButton.disabled = false;
     }
