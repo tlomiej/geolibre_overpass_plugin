@@ -2,12 +2,14 @@ import type {
   OverpassBounds,
   OverpassElement,
   OverpassFeatureCollection,
+  OverpassGeoJSONGeometry,
+  OverpassPosition,
 } from './PluginModels';
 
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
 
 export const DEFAULT_OVERPASS_QUERY =
-  '[timeout:25];\n(\n  nwr["amenity"]({{bbox}});\n);\nout center tags;';
+  '[timeout:25];\n(\n  nwr["amenity"]({{bbox}});\n);\nout geom tags;';
 
 export function buildOverpassQuery(query: string, bounds: OverpassBounds): string {
   const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
@@ -28,24 +30,13 @@ export function overpassResponseToGeoJSON(
   }
 
   const features = (data.elements as OverpassElement[]).flatMap((element) => {
-    const latitude = element.lat ?? element.center?.lat;
-    const longitude = element.lon ?? element.center?.lon;
-    if (
-      typeof latitude !== 'number' ||
-      !Number.isFinite(latitude) ||
-      typeof longitude !== 'number' ||
-      !Number.isFinite(longitude)
-    ) {
-      return [];
-    }
+    const geometry = overpassElementToGeometry(element);
+    if (!geometry) return [];
 
     return [{
       type: 'Feature' as const,
       id: `${element.type}/${element.id}`,
-      geometry: {
-        type: 'Point' as const,
-        coordinates: [longitude, latitude] as [number, number],
-      },
+      geometry,
       properties: {
         ...element.tags,
         osm_type: element.type,
@@ -55,6 +46,158 @@ export function overpassResponseToGeoJSON(
   });
 
   return { type: 'FeatureCollection', features };
+}
+
+function overpassElementToGeometry(element: OverpassElement): OverpassGeoJSONGeometry | null {
+  if (
+    element.type === 'node' &&
+    typeof element.lat === 'number' &&
+    Number.isFinite(element.lat) &&
+    typeof element.lon === 'number' &&
+    Number.isFinite(element.lon)
+  ) {
+    return { type: 'Point', coordinates: [element.lon, element.lat] };
+  }
+
+  if (element.type === 'way' && element.geometry) {
+    const coordinates = toPositions(element.geometry);
+    if (coordinates.length >= 2) {
+      if (isAreaWay(element, coordinates)) {
+        return { type: 'Polygon', coordinates: [coordinates] };
+      }
+      return { type: 'LineString', coordinates };
+    }
+  }
+
+  if (
+    element.type === 'relation' &&
+    (element.tags?.type === 'multipolygon' || element.tags?.type === 'boundary')
+  ) {
+    const polygons = relationToPolygons(element);
+    if (polygons.length > 0) return { type: 'MultiPolygon', coordinates: polygons };
+  }
+
+  if (element.type === 'relation' && element.members) {
+    const lines = element.members
+      .filter((member) => member.type === 'way' && member.geometry)
+      .map((member) => toPositions(member.geometry ?? []))
+      .filter((coordinates) => coordinates.length >= 2);
+    if (lines.length > 0) return { type: 'MultiLineString', coordinates: lines };
+  }
+
+  if (
+    typeof element.center?.lat === 'number' &&
+    Number.isFinite(element.center.lat) &&
+    typeof element.center.lon === 'number' &&
+    Number.isFinite(element.center.lon)
+  ) {
+    return {
+      type: 'Point',
+      coordinates: [element.center.lon, element.center.lat],
+    };
+  }
+
+  return null;
+}
+
+function toPositions(coordinates: Array<{ lat: number; lon: number }>): OverpassPosition[] {
+  return coordinates
+    .filter(({ lat, lon }) => isCoordinate(lat, lon))
+    .map(({ lat, lon }) => [lon, lat]);
+}
+
+function isCoordinate(latitude: unknown, longitude: unknown): latitude is number {
+  return (
+    typeof latitude === 'number' &&
+    Number.isFinite(latitude) &&
+    typeof longitude === 'number' &&
+    Number.isFinite(longitude)
+  );
+}
+
+function isAreaWay(element: OverpassElement, coordinates: OverpassPosition[]): boolean {
+  if (!isClosedRing(coordinates) || element.tags?.area === 'no') return false;
+  if (element.tags?.area === 'yes') return true;
+
+  const tags = element.tags ?? {};
+  if (tags.natural === 'coastline' || tags.waterway) return false;
+  return [
+    'amenity',
+    'building',
+    'landuse',
+    'leisure',
+    'military',
+    'natural',
+    'place',
+    'shop',
+    'tourism',
+  ].some((key) => key in tags);
+}
+
+function relationToPolygons(element: OverpassElement): OverpassPosition[][][] {
+  const members = element.members ?? [];
+  const outerRings = stitchRings(
+    members
+      .filter((member) => member.type === 'way' && (member.role ?? 'outer') === 'outer')
+      .map((member) => toPositions(member.geometry ?? [])),
+  );
+  const innerRings = stitchRings(
+    members
+      .filter((member) => member.type === 'way' && member.role === 'inner')
+      .map((member) => toPositions(member.geometry ?? [])),
+  );
+
+  const polygons = outerRings.map((outer) => [outer]);
+  for (const inner of innerRings) {
+    const polygonIndex = outerRings.findIndex((outer) => pointInRing(inner[0], outer));
+    if (polygonIndex >= 0) polygons[polygonIndex].push(inner);
+  }
+  return polygons;
+}
+
+function stitchRings(lines: OverpassPosition[][]): OverpassPosition[][] {
+  const pending = lines.filter((line) => line.length >= 2).map((line) => [...line]);
+  const rings: OverpassPosition[][] = [];
+
+  while (pending.length > 0) {
+    const ring = pending.shift()!;
+    while (!samePosition(ring[0], ring[ring.length - 1])) {
+      const endpoint = ring[ring.length - 1];
+      const nextIndex = pending.findIndex(
+        (line) => samePosition(line[0], endpoint) || samePosition(line[line.length - 1], endpoint),
+      );
+      if (nextIndex < 0) break;
+
+      let next = pending.splice(nextIndex, 1)[0];
+      if (samePosition(next[next.length - 1], endpoint)) next = next.reverse();
+      ring.push(...next.slice(1));
+    }
+
+    if (isClosedRing(ring)) rings.push(ring);
+  }
+
+  return rings;
+}
+
+function isClosedRing(coordinates: OverpassPosition[]): boolean {
+  return coordinates.length >= 4 && samePosition(coordinates[0], coordinates[coordinates.length - 1]);
+}
+
+function samePosition(first: OverpassPosition, second: OverpassPosition): boolean {
+  return first[0] === second[0] && first[1] === second[1];
+}
+
+function pointInRing(point: OverpassPosition, ring: OverpassPosition[]): boolean {
+  let inside = false;
+  for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index++) {
+    const [x, y] = ring[index];
+    const [previousX, previousY] = ring[previous];
+    const crosses =
+      y > point[1] !== previousY > point[1] &&
+      point[0] < ((previousX - x) * (point[1] - y)) / (previousY - y) + x;
+    if (crosses) inside = !inside;
+  }
+  return inside;
 }
 
 export async function fetchOverpssData(
