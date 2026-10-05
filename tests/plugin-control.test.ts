@@ -19,6 +19,21 @@ describe('PluginControl native layer fallback', () => {
           geometry: { type: 'Point' as const, coordinates: [2, 3] as [number, number] },
           properties: { amenity: 'cafe' },
         },
+        {
+          type: 'Feature' as const,
+          id: 'way/2',
+          geometry: { type: 'LineString' as const, coordinates: [[2, 3], [4, 5]] },
+          properties: { highway: 'path' },
+        },
+        {
+          type: 'Feature' as const,
+          id: 'way/3',
+          geometry: {
+            type: 'Polygon' as const,
+            coordinates: [[[2, 3], [4, 3], [4, 5], [2, 3]]],
+          },
+          properties: { building: 'yes' },
+        },
       ],
     };
     vi.mocked(fetchOverpssData).mockResolvedValueOnce(geojson);
@@ -51,7 +66,7 @@ describe('PluginControl native layer fallback', () => {
     queryEditor.value = query;
 
     mapContainer.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
-    await vi.waitFor(() => expect(map.addLayer).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(map.addLayer).toHaveBeenCalledTimes(3));
 
     expect(fetchOverpssData).toHaveBeenCalledWith(
       { south: 1, west: 2, north: 3, east: 4 },
@@ -61,19 +76,38 @@ describe('PluginControl native layer fallback', () => {
       type: 'geojson',
       data: geojson,
     });
-    expect(map.addLayer).toHaveBeenCalledWith(
+    expect(map.addLayer).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
-        id: 'overpass-data-layer',
+        id: 'overpass-data-fill-layer',
+        type: 'fill',
+        source: 'overpass-data-source',
+      }),
+    );
+    expect(map.addLayer).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        id: 'overpass-data-line-layer',
+        type: 'line',
+        source: 'overpass-data-source',
+      }),
+    );
+    expect(map.addLayer).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        id: 'overpass-data-point-layer',
         type: 'circle',
         source: 'overpass-data-source',
       }),
     );
     expect(mapContainer.querySelector('.plugin-control-status')?.textContent)
-      .toContain('Wyświetlono obiekty: 1.');
+      .toContain('Wyświetlono obiekty: 3.');
 
     control.onRemove();
 
-    expect(map.removeLayer).toHaveBeenCalledWith('overpass-data-layer');
+    expect(map.removeLayer).toHaveBeenCalledWith('overpass-data-fill-layer');
+    expect(map.removeLayer).toHaveBeenCalledWith('overpass-data-line-layer');
+    expect(map.removeLayer).toHaveBeenCalledWith('overpass-data-point-layer');
     expect(map.removeSource).toHaveBeenCalledWith('overpass-data-source');
     mapContainer.remove();
   });

@@ -56,6 +56,60 @@ describe('overpassResponseToGeoJSON', () => {
     });
   });
 
+  it('converts way geometry into lines and polygons', () => {
+    const result = overpassResponseToGeoJSON({
+      elements: [
+        {
+          type: 'way',
+          id: 10,
+          geometry: [{ lat: 1, lon: 2 }, { lat: 3, lon: 4 }],
+          tags: { highway: 'path' },
+        },
+        {
+          type: 'way',
+          id: 11,
+          geometry: [
+            { lat: 0, lon: 0 },
+            { lat: 0, lon: 2 },
+            { lat: 2, lon: 2 },
+            { lat: 0, lon: 0 },
+          ],
+          tags: { building: 'yes' },
+        },
+      ],
+    });
+
+    expect(result.features.map((feature) => feature.geometry)).toEqual([
+      { type: 'LineString', coordinates: [[2, 1], [4, 3]] },
+      { type: 'Polygon', coordinates: [[[0, 0], [2, 0], [2, 2], [0, 0]]] },
+    ]);
+  });
+
+  it('converts multipolygon relations and retains inner rings', () => {
+    const result = overpassResponseToGeoJSON({
+      elements: [
+        {
+          type: 'relation',
+          id: 20,
+          tags: { type: 'multipolygon', landuse: 'forest' },
+          members: [
+            { type: 'way', ref: 1, role: 'outer', geometry: [{ lat: 0, lon: 0 }, { lat: 0, lon: 2 }] },
+            { type: 'way', ref: 2, role: 'outer', geometry: [{ lat: 0, lon: 2 }, { lat: 2, lon: 2 }] },
+            { type: 'way', ref: 3, role: 'outer', geometry: [{ lat: 2, lon: 2 }, { lat: 2, lon: 0 }, { lat: 0, lon: 0 }] },
+            { type: 'way', ref: 4, role: 'inner', geometry: [{ lat: 0.5, lon: 0.5 }, { lat: 0.5, lon: 1 }, { lat: 1, lon: 1 }, { lat: 0.5, lon: 0.5 }] },
+          ],
+        },
+      ],
+    });
+
+    expect(result.features[0].geometry.type).toBe('MultiPolygon');
+    if (result.features[0].geometry.type !== 'MultiPolygon') {
+      throw new Error('Expected multipolygon geometry.');
+    }
+    expect(result.features[0].geometry.coordinates).toHaveLength(1);
+    expect(result.features[0].geometry.coordinates[0]).toHaveLength(2);
+  });
+
   it('rejects malformed Overpass responses', () => {
     expect(() => overpassResponseToGeoJSON({})).toThrow(
       'Overpass API returned an invalid response.',
