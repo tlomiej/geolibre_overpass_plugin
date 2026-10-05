@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
-import { fetchOverpssData } from './overpass-poi';
+import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-poi';
 
 export interface PluginContentContext {
   getMap: () => MapLibreMap | undefined;
@@ -21,18 +21,18 @@ export function createPluginContent({
 
   const placeholder = document.createElement('p');
   placeholder.className = 'plugin-control-placeholder';
-  placeholder.textContent = 'Add your custom plugin content here.2';
+  placeholder.textContent = 'Overpass query';
 
   const customTextarea = document.createElement('textarea');
   customTextarea.className = 'plugin-control-textarea';
-  customTextarea.placeholder = 'Type your custom text here...';
-  customTextarea.rows = 4;
-  customTextarea.setAttribute('aria-label', 'Custom plugin text');
+  customTextarea.value = DEFAULT_OVERPASS_QUERY;
+  customTextarea.rows = 10;
+  customTextarea.setAttribute('aria-label', 'Overpass query');
 
   const downloadButton = document.createElement('button');
   downloadButton.type = 'button';
   downloadButton.className = 'plugin-control-action';
-  downloadButton.textContent = 'Download Data';
+  downloadButton.textContent = 'Run Query';
   downloadButton.addEventListener('click', async () => {
     const map = getMap();
     const mapBounds = map?.getBounds();
@@ -42,31 +42,31 @@ export function createPluginContent({
     }
 
     downloadButton.disabled = true;
-    setStatus('Pobieram POI...');
+    setStatus('Wykonuję zapytanie Overpass...');
     try {
       const geojson = await fetchData({
         south: mapBounds.getSouth(),
         west: mapBounds.getWest(),
         north: mapBounds.getNorth(),
         east: mapBounds.getEast(),
-      });
+      }, customTextarea.value);
       if (geojson.features.length === 0) {
-        setStatus('Nie znaleziono POI w widocznym obszarze.');
+        setStatus('Zapytanie nie zwróciło obiektów punktowych.');
         return;
       }
 
       const registered = registerNativeLayer({
-        id: 'overpass-poi',
-        name: 'Overpass POI',
+        id: 'overpass-data',
+        name: 'Overpass data',
         geojson,
-        nativeLayerIds: ['overpass-poi-layer'],
-        sourceIds: ['overpass-poi-source'],
+        nativeLayerIds: ['overpass-data-layer'],
+        sourceIds: ['overpass-data-source'],
         opacity: 1,
         style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill },
         metadata: { source: 'Overpass API', featureCount: geojson.features.length },
       });
       if (registered) {
-        setStatus(`Wyświetlono POI: ${geojson.features.length}.`);
+        setStatus(`Wyświetlono obiekty: ${geojson.features.length}.`);
       }
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Unable to download POI.');
