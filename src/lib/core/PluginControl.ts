@@ -337,11 +337,35 @@ export class PluginControl implements IControl, DeepLinkConsumer {
         type: 'geojson',
         data: layer.geojson as never,
       });
-      for (const layerId of layer.nativeLayerIds) {
+      if (layer.nativeLayerIds.length >= 3) {
+        const [fillLayerId, lineLayerId, pointLayerId] = layer.nativeLayerIds;
         map.addLayer({
-          id: layerId,
+          id: fillLayerId,
+          type: 'fill',
+          source: sourceId,
+          filter: ['==', '$type', 'Polygon'],
+          paint: {
+            'fill-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+            'fill-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
+            'fill-outline-color': layer.style.strokeColor ?? layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+          },
+        });
+        map.addLayer({
+          id: lineLayerId,
+          type: 'line',
+          source: sourceId,
+          filter: ['==', '$type', 'LineString'],
+          paint: {
+            'line-color': layer.style.strokeColor ?? layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+            'line-width': layer.style.strokeWidth ?? 2,
+            'line-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
+          },
+        });
+        map.addLayer({
+          id: pointLayerId,
           type: 'circle',
           source: sourceId,
+          filter: ['==', '$type', 'Point'],
           paint: {
             'circle-radius': layer.style.circleRadius ?? 6,
             'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
@@ -354,6 +378,25 @@ export class PluginControl implements IControl, DeepLinkConsumer {
               : {}),
           },
         });
+      } else {
+        for (const layerId of layer.nativeLayerIds) {
+          map.addLayer({
+            id: layerId,
+            type: 'circle',
+            source: sourceId,
+            paint: {
+              'circle-radius': layer.style.circleRadius ?? 6,
+              'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+              'circle-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
+              ...(layer.style.strokeColor
+                ? { 'circle-stroke-color': layer.style.strokeColor }
+                : {}),
+              ...(layer.style.strokeWidth !== undefined
+                ? { 'circle-stroke-width': layer.style.strokeWidth }
+                : {}),
+            },
+          });
+        }
       }
       this._registeredMapLayers.set(layer.id, {
         sourceIds: [sourceId],
