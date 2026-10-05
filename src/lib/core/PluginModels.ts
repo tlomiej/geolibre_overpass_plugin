@@ -10,13 +10,19 @@ export interface OverpassFeatureCollection {
   features: Array<{
     type: 'Feature';
     id: string;
-    geometry: {
-      type: 'Point';
-      coordinates: [number, number];
-    };
+    geometry: OverpassGeoJSONGeometry;
     properties: Record<string, unknown>;
   }>;
 }
+
+export type OverpassPosition = [number, number];
+
+export type OverpassGeoJSONGeometry =
+  | { type: 'Point'; coordinates: OverpassPosition }
+  | { type: 'LineString'; coordinates: OverpassPosition[] }
+  | { type: 'MultiLineString'; coordinates: OverpassPosition[][] }
+  | { type: 'Polygon'; coordinates: OverpassPosition[][] }
+  | { type: 'MultiPolygon'; coordinates: OverpassPosition[][][] };
 
 export interface OverpassElement {
   type: string;
@@ -25,4 +31,11 @@ export interface OverpassElement {
   lon?: number;
   center?: { lat: number; lon: number };
   tags?: Record<string, string>;
+  geometry?: Array<{ lat: number; lon: number }>;
+  members?: Array<{
+    type: string;
+    ref: number;
+    role?: string;
+    geometry?: Array<{ lat: number; lon: number }>;
+  }>;
 }
