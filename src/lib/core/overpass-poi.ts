@@ -1,36 +1,22 @@
 import type {
   OverpassBounds,
   OverpassElement,
-  OverpassPoiFeatureCollection,
+  OverpassFeatureCollection,
 } from './PluginModels';
 
 const OVERPASS_ENDPOINT = 'https://overpass-api.de/api/interpreter';
 
-const POI_TAGS = [
-  'amenity',
-//   'shop',
-//   'tourism',
-//   'leisure',
-//   'healthcare',
-//   'historic',
-//   'office',
-//   'craft',
-//   'emergency',
-//   'public_transport',
-];
+export const DEFAULT_OVERPASS_QUERY =
+  '[out:json][timeout:25];\n(\n  nwr["amenity"]({{bbox}});\n);\nout center tags;';
 
-export function buildOverpassPoiQuery(bounds: OverpassBounds): string {
+export function buildOverpassQuery(query: string, bounds: OverpassBounds): string {
   const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
-  const selectors = POI_TAGS.map(
-    (tag) => `  nwr["${tag}"](${bbox});`,
-  ).join('\n');
-
-  return `[out:json][timeout:25];\n(\n${selectors}\n);\nout center tags;`;
+  return query.split('{{bbox}}').join(bbox);
 }
 
 export function overpassResponseToGeoJSON(
   data: unknown,
-): OverpassPoiFeatureCollection {
+): OverpassFeatureCollection {
   if (
     !data ||
     typeof data !== 'object' ||
@@ -72,11 +58,12 @@ export function overpassResponseToGeoJSON(
 
 export async function fetchOverpssData(
   bounds: OverpassBounds,
-): Promise<OverpassPoiFeatureCollection> {
+  query: string,
+): Promise<OverpassFeatureCollection> {
   const response = await fetch(OVERPASS_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ data: buildOverpassPoiQuery(bounds) }),
+    body: new URLSearchParams({ data: buildOverpassQuery(query, bounds) }),
   });
 
   if (!response.ok) {
