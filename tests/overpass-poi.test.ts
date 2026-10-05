@@ -1,22 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import {
-  buildOverpassPoiQuery,
+  buildOverpassQuery,
+  DEFAULT_OVERPASS_QUERY,
   overpassResponseToGeoJSON,
-} from '../src/lib/utils/overpass-poi';
+} from '../src/lib/core/overpass-poi';
 
-describe('buildOverpassPoiQuery', () => {
-  it('queries POI categories inside the provided map bounds', () => {
-    const query = buildOverpassPoiQuery({
+describe('buildOverpassQuery', () => {
+  it('inserts map bounds into an editable query without restricting its filters', () => {
+    const query = buildOverpassQuery(
+      '[out:json]; nwr["building"]({{bbox}}); out center tags;',
+      {
       south: 51.4,
       west: -0.2,
       north: 51.6,
       east: 0.1,
-    });
+      },
+    );
 
-    expect(query).toContain('nwr["amenity"](51.4,-0.2,51.6,0.1);');
-    expect(query).toContain('nwr["shop"](51.4,-0.2,51.6,0.1);');
-    expect(query).toContain('nwr["tourism"](51.4,-0.2,51.6,0.1);');
-    expect(query).toContain('out center tags;');
+    expect(query).toBe('[out:json]; nwr["building"](51.4,-0.2,51.6,0.1); out center tags;');
+    expect(DEFAULT_OVERPASS_QUERY).toContain('nwr["amenity"]({{bbox}});');
   });
 });
 
