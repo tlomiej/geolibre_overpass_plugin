@@ -3,12 +3,13 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
 import { fetchOverpssData } from '../src/lib/core/overpass-poi';
 
-vi.mock('../src/lib/utils/overpass-poi', () => ({
+vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
+  ...await importOriginal<typeof import('../src/lib/core/overpass-poi')>(),
   fetchOverpssData: vi.fn(),
 }));
 
 describe('PluginControl native layer fallback', () => {
-  it('adds downloaded POIs to MapLibre and removes them with the control', async () => {
+  it('runs the edited Overpass query and removes returned data with the control', async () => {
     const geojson = {
       type: 'FeatureCollection' as const,
       features: [
@@ -44,27 +45,36 @@ describe('PluginControl native layer fallback', () => {
     const control = new PluginControl();
     mapContainer.appendChild(control.onAdd(map as unknown as MapLibreMap));
 
+    const query = '[out:json]; nwr["building"]({{bbox}}); out center tags;';
+    const queryEditor = mapContainer.querySelector<HTMLTextAreaElement>('.plugin-control-textarea');
+    if (!queryEditor) throw new Error('Overpass query editor was not created.');
+    queryEditor.value = query;
+
     mapContainer.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
     await vi.waitFor(() => expect(map.addLayer).toHaveBeenCalledOnce());
 
-    expect(map.addSource).toHaveBeenCalledWith('overpass-poi-source', {
+    expect(fetchOverpssData).toHaveBeenCalledWith(
+      { south: 1, west: 2, north: 3, east: 4 },
+      query,
+    );
+    expect(map.addSource).toHaveBeenCalledWith('overpass-data-source', {
       type: 'geojson',
       data: geojson,
     });
     expect(map.addLayer).toHaveBeenCalledWith(
       expect.objectContaining({
-        id: 'overpass-poi-layer',
+        id: 'overpass-data-layer',
         type: 'circle',
-        source: 'overpass-poi-source',
+        source: 'overpass-data-source',
       }),
     );
     expect(mapContainer.querySelector('.plugin-control-status')?.textContent)
-      .toContain('Wyświetlono POI: 1.');
+      .toContain('Wyświetlono obiekty: 1.');
 
     control.onRemove();
 
-    expect(map.removeLayer).toHaveBeenCalledWith('overpass-poi-layer');
-    expect(map.removeSource).toHaveBeenCalledWith('overpass-poi-source');
+    expect(map.removeLayer).toHaveBeenCalledWith('overpass-data-layer');
+    expect(map.removeSource).toHaveBeenCalledWith('overpass-data-source');
     mapContainer.remove();
   });
 });
