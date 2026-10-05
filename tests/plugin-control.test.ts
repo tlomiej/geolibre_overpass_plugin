@@ -45,7 +45,7 @@ describe('PluginControl native layer fallback', () => {
     const control = new PluginControl();
     mapContainer.appendChild(control.onAdd(map as unknown as MapLibreMap));
 
-    const query = '[out:json]; nwr["building"]({{bbox}}); out center tags;';
+    const query = '[timeout:25]; nwr["building"]({{bbox}}); out center tags;';
     const queryEditor = mapContainer.querySelector<HTMLTextAreaElement>('.plugin-control-textarea');
     if (!queryEditor) throw new Error('Overpass query editor was not created.');
     queryEditor.value = query;
