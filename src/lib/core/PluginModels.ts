@@ -5,7 +5,7 @@ export interface OverpassBounds {
   east: number;
 }
 
-export interface OverpassPoiFeatureCollection {
+export interface OverpassFeatureCollection {
   type: 'FeatureCollection';
   features: Array<{
     type: 'Feature';
