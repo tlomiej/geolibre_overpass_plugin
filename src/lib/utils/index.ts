@@ -7,11 +7,12 @@ export {
   classNames,
 } from './helpers';
 export {
-  buildOverpassPoiQuery,
+  buildOverpassQuery,
   fetchOverpssData,
   overpassResponseToGeoJSON,
 } from '../core/overpass-poi';
+export { DEFAULT_OVERPASS_QUERY } from '../core/overpass-poi';
 export type {
   OverpassBounds,
-  OverpassPoiFeatureCollection,
+  OverpassFeatureCollection,
 } from '../core/PluginModels';
