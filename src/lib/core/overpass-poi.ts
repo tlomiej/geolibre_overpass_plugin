@@ -5,6 +5,7 @@ import type {
   OverpassGeoJSONGeometry,
   OverpassPosition,
 } from "./PluginModels";
+import { UI_MESSAGES } from "./messages";
 
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 
@@ -38,7 +39,7 @@ export function overpassResponseToGeoJSON(
     !("elements" in data) ||
     !Array.isArray(data.elements)
   ) {
-    throw new Error("Overpass API returned an invalid response.");
+    throw new Error(UI_MESSAGES.invalidOverpassResponse);
   }
 
   const features = (data.elements as OverpassElement[]).flatMap((element) => {
@@ -259,7 +260,7 @@ export async function fetchOverpssData(
   });
 
   if (!response.ok) {
-    throw new Error(`Overpass API request failed (${response.status}).`);
+    throw new Error(UI_MESSAGES.overpassRequestFailed(response.status));
   }
 
   const data: unknown = await response.json();
