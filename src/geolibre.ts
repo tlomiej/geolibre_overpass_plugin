@@ -1,4 +1,5 @@
 import { PluginControl } from "./lib/core/PluginControl";
+import { UI_MESSAGES } from "./lib/core/messages";
 import type { PluginState } from "./lib/core/types";
 import type {
   GeoLibreAppAPI,
@@ -29,7 +30,7 @@ function createControl(app: AppAPI): PluginControl {
   const nextControl = new PluginControl({
     collapsed: pendingState?.collapsed ?? true,
     panelWidth: pendingState?.panelWidth ?? 300,
-    title: "GeoLibre Plugin Template",
+    title: 'GeoLibre Plugin Template',
     // Bind optional host capabilities; each falls back to a no-op on hosts (or
     // standalone usage) that do not provide them.
     pickFiles: () => app.pickLocalDirectoryFiles?.() ?? Promise.resolve(null),
