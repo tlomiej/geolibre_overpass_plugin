@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
-import { fetchOverpssData } from '../src/lib/core/overpass-poi';
+import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-poi';
+import { createPluginContent } from '../src/lib/core/plugin-content';
+import { applyTagFilters } from '../src/lib/core/query-tags';
 
 vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
   ...await importOriginal<typeof import('../src/lib/core/overpass-poi')>(),
@@ -9,6 +11,97 @@ vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
 }));
 
 describe('PluginControl native layer fallback', () => {
+  it('builds existence selectors for wildcard feature categories', () => {
+    const query = applyTagFilters('[out:json]; ( nwr; ); out geom tags;', [
+      { key: 'highway', value: '*', label: 'All roads and paths' },
+      { key: 'building', value: '*', label: 'All buildings' },
+      { key: 'waterway', value: 'river', label: 'Rivers' },
+    ]);
+
+    expect(query).toContain('nwr["highway"];');
+    expect(query).toContain('nwr["building"];');
+    expect(query).toContain('nwr["waterway"="river"];');
+    expect(query).not.toContain('"*"');
+  });
+
+  it('adds arbitrary key-value filters as removable chips and applies them to the query', async () => {
+    const fetchData = vi.fn(async () => ({ type: 'FeatureCollection' as const, features: [] }));
+    const map = {
+      getBounds: () => ({
+        getSouth: () => 1,
+        getWest: () => 2,
+        getNorth: () => 3,
+        getEast: () => 4,
+      }),
+    } as unknown as MapLibreMap;
+    const { content } = createPluginContent({
+      getMap: () => map,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+      fetchData,
+    });
+
+    const keyInput = content.querySelector<HTMLInputElement>('[aria-label="Tag key"]');
+    const valueInput = content.querySelector<HTMLInputElement>('[aria-label="Tag value"]');
+    if (!keyInput || !valueInput) throw new Error('Custom tag fields were not created.');
+    keyInput.value = 'highway';
+    valueInput.value = 'path';
+    content.querySelector<HTMLButtonElement>('.plugin-control-add-tag')?.click();
+
+    const chip = content.querySelector<HTMLButtonElement>('.plugin-control-chip');
+    expect(chip?.textContent).toBe('highway=path');
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(fetchData).toHaveBeenCalledTimes(1));
+    expect(fetchData.mock.calls[0][1]).toContain('nwr["highway"="path"];');
+
+    const documentClick = vi.fn();
+    document.addEventListener('click', documentClick);
+    chip?.click();
+    document.removeEventListener('click', documentClick);
+    expect(documentClick).not.toHaveBeenCalled();
+    expect(content.querySelector('.plugin-control-chip')).toBeNull();
+  });
+
+  it('adds and removes tag chips and applies selected tags to the query', async () => {
+    const features = { type: 'FeatureCollection' as const, features: [] };
+    const fetchData = vi.fn(async () => features);
+    const setStatus = vi.fn();
+    const contextMap = {
+      getBounds: () => ({
+        getSouth: () => 1,
+        getWest: () => 2,
+        getNorth: () => 3,
+        getEast: () => 4,
+      }),
+    } as unknown as MapLibreMap;
+    const { content } = createPluginContent({
+      getMap: () => contextMap,
+      setStatus,
+      registerNativeLayer: () => true,
+      fetchData,
+    });
+
+    const tagSelect = content.querySelector<HTMLSelectElement>('.plugin-control-select');
+    if (!tagSelect) throw new Error('Tag filter selector was not created.');
+    tagSelect.value = 'amenity=cafe';
+    tagSelect.dispatchEvent(new Event('change'));
+
+    const chip = content.querySelector<HTMLButtonElement>('.plugin-control-chip');
+    expect(chip?.textContent).toBe('Cafe');
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(fetchData).toHaveBeenCalledTimes(1));
+    expect(fetchData.mock.calls[0][1]).toContain('nwr["amenity"="cafe"];');
+    expect(fetchData.mock.calls[0][1]).not.toContain('nwr;');
+
+    chip?.click();
+    expect(content.querySelector('.plugin-control-chip')).toBeNull();
+    expect(tagSelect.querySelector<HTMLOptionElement>('option[value="amenity=cafe"]')?.disabled)
+      .toBe(false);
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(fetchData).toHaveBeenCalledTimes(2));
+    expect(fetchData.mock.calls[1][1]).toContain(DEFAULT_OVERPASS_QUERY);
+  });
+
   it('runs the edited Overpass query and removes returned data with the control', async () => {
     const geojson = {
       type: 'FeatureCollection' as const,

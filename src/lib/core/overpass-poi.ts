@@ -17,7 +17,10 @@ export function buildOverpassQuery(
   bounds: OverpassBounds,
 ): string {
   const bbox = `${bounds.south},${bounds.west},${bounds.north},${bounds.east}`;
-  const queryBody = query.trim().replace(/^\[out:json\]\s*/i, "");
+  const queryBody = query
+    .trim()
+    .replace(/^\[out:json\]\s*/i, "")
+    .replace(/\{\{bbox\}\}/g, bbox);
   const boundedQuery = queryBody.replace(
     /\b(node|way|relation|area|nwr)((?:\s*\[[^\]]*\])*)\s*;/g,
     `$1$2(${bbox});`,

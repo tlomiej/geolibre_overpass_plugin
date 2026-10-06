@@ -1,5 +1,4 @@
 import { PluginControl } from "./lib/core/PluginControl";
-import { UI_MESSAGES } from "./lib/core/messages";
 import type { PluginState } from "./lib/core/types";
 import type {
   GeoLibreAppAPI,
