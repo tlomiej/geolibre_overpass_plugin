@@ -10,6 +10,7 @@ import { fetchOverpssData } from './overpass-poi';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { createPluginContent } from './plugin-content';
+import { UI_MESSAGES } from './messages';
 
 /**
  * Default options for the PluginControl.
@@ -21,7 +22,7 @@ import { createPluginContent } from './plugin-content';
 const DEFAULT_OPTIONS: Required<PluginControlOptions> = {
   collapsed: true,
   position: 'top-right',
-  title: 'Plugin Control',
+  title: UI_MESSAGES.controlTitle,
   panelWidth: 300,
   className: '',
   pickFiles: () => Promise.resolve(null),
@@ -318,7 +319,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
       }
       return true;
     } catch {
-      this._setStatus('Failed to register native layer.');
+      this._setStatus(UI_MESSAGES.failedToRegisterLayer);
       return false;
     }
   }
@@ -327,7 +328,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     const map = this._map;
     const sourceId = layer.sourceIds[0];
     if (!map || !layer.geojson || !sourceId || layer.nativeLayerIds.length === 0) {
-      this._setStatus('Unable to add layer to the map.');
+      this._setStatus(UI_MESSAGES.unableToAddLayer);
       return false;
     }
 
@@ -405,7 +406,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
       return true;
     } catch {
       this._removeMapLayers({ sourceIds: [sourceId], layerIds: [...layer.nativeLayerIds] });
-      this._setStatus('Failed to add layer to the map.');
+      this._setStatus(UI_MESSAGES.failedToAddLayer);
       return false;
     }
   }
@@ -524,7 +525,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     const closeBtn = document.createElement('button');
     closeBtn.className = 'plugin-control-close';
     closeBtn.type = 'button';
-    closeBtn.setAttribute('aria-label', 'Close panel');
+    closeBtn.setAttribute('aria-label', UI_MESSAGES.closePanel);
     closeBtn.innerHTML = '&times;';
     closeBtn.addEventListener('click', () => this.collapse());
 
