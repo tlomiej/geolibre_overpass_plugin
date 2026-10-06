@@ -178,14 +178,6 @@
   overflow-y: auto;
 }
 
-.plugin-control-placeholder {
-  margin: 0;
-  color: var(--pc-muted);
-  font-size: 12px;
-  text-align: center;
-  padding: 16px 0;
-}
-
 /* Demo actions wiring the host callbacks (open folder, deep-link status) */
 .plugin-control-actions {
   display: flex;
@@ -217,24 +209,7 @@
   outline-offset: 2px;
 }
 
-.plugin-control-status {
-  margin-top: 8px;
-  font-size: 12px;
-  color: var(--pc-muted);
-  overflow-wrap: break-word;
-}
-
-.plugin-control-status:empty {
-  display: none;
-}
-
-/* Scrollbar styling */
-.plugin-control-content::-webkit-scrollbar {
-  width: 6px;
-}
-
-.plugin-control-content::-webkit-scrollbar-track {
-  background: transparent;
+.plugin-control-input:focus {
 }
 
 .plugin-control-content::-webkit-scrollbar-thumb {
@@ -275,27 +250,26 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.plugin-control-textarea {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  min-height: 80px;
-  resize: vertical;
-  padding: 8px 10px;
-  font-size: 14px;
-  color: var(--pc-input-text);
-  background: var(--pc-input-bg);
-  border: 1px solid var(--pc-input-border);
-  border-radius: 4px;
-  outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
-}
-
 .plugin-control-select {
   display: block;
   box-sizing: border-box;
   margin: 0 0 8px;
   cursor: pointer;
+}
+
+.plugin-control-timeout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: var(--pc-label);
+  font-size: 12px;
+}
+
+.plugin-control-timeout {
+  width: 82px;
+  padding: 6px 8px;
 }
 
 .plugin-control-custom-tag {
@@ -310,6 +284,29 @@
   min-width: 0;
   padding: 7px 8px;
   font-size: 12px;
+}
+
+.plugin-control-advanced-options {
+  margin: 0 0 8px;
+  border-top: 1px solid var(--pc-input-border);
+  border-bottom: 1px solid var(--pc-input-border);
+}
+
+.plugin-control-advanced-options summary {
+  padding: 8px 2px;
+  color: var(--pc-muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.plugin-control-advanced-options[open] summary {
+  margin-bottom: 8px;
+}
+
+.plugin-control-advanced-options .plugin-control-timeout-row,
+.plugin-control-advanced-options .plugin-control-custom-tag {
+  margin-right: 2px;
+  margin-left: 2px;
 }
 
 .plugin-control-add-tag {
@@ -373,8 +370,7 @@
   outline-offset: 2px;
 }
 
-.plugin-control-input:focus,
-.plugin-control-textarea:focus {
+.plugin-control-input:focus {
   border-color: var(--pc-accent);
   box-shadow: 0 0 0 3px var(--pc-accent-ring);
 }

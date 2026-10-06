@@ -3,7 +3,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-poi';
 import { createPluginContent } from '../src/lib/core/plugin-content';
-import { applyTagFilters } from '../src/lib/core/query-tags';
+import { applyQueryTimeout, applyTagFilters } from '../src/lib/core/query-tags';
 
 vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
   ...await importOriginal<typeof import('../src/lib/core/overpass-poi')>(),
@@ -11,6 +11,29 @@ vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
 }));
 
 describe('PluginControl native layer fallback', () => {
+  it('places timeout and custom tag controls inside collapsed advanced options', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+    const advancedOptions = content.querySelector<HTMLDetailsElement>(
+      '.plugin-control-advanced-options',
+    );
+
+    expect(advancedOptions?.open).toBe(false);
+    expect(advancedOptions?.querySelector('.plugin-control-timeout-row')).not.toBeNull();
+    expect(advancedOptions?.querySelector('.plugin-control-custom-tag')).not.toBeNull();
+    expect(content.querySelector('.plugin-control-select')).not.toBeNull();
+  });
+
+  it('adds or replaces the query timeout from the numeric setting', () => {
+    expect(applyQueryTimeout('( nwr; );', 30)).toBe('[timeout:30];\n( nwr; );');
+    expect(applyQueryTimeout('[timeout:25]; ( nwr; );', 45)).toBe(
+      '[timeout:45]; ( nwr; );',
+    );
+  });
+
   it('builds existence selectors for wildcard feature categories', () => {
     const query = applyTagFilters('[out:json]; ( nwr; ); out geom tags;', [
       { key: 'highway', value: '*', label: 'All roads and paths' },
@@ -22,6 +45,12 @@ describe('PluginControl native layer fallback', () => {
     expect(query).toContain('nwr["building"];');
     expect(query).toContain('nwr["waterway"="river"];');
     expect(query).not.toContain('"*"');
+  });
+
+  it('keeps the all-objects nwr selector exclusive with tag filters', () => {
+    expect(applyTagFilters('[out:json]; ( nwr; );', [
+      { key: 'nwr', value: '*', label: 'All map objects (nwr)' },
+    ])).toBe('[out:json]; ( nwr; );');
   });
 
   it('adds arbitrary key-value filters as removable chips and applies them to the query', async () => {
@@ -102,7 +131,7 @@ describe('PluginControl native layer fallback', () => {
     expect(fetchData.mock.calls[1][1]).toContain(DEFAULT_OVERPASS_QUERY);
   });
 
-  it('runs the edited Overpass query and removes returned data with the control', async () => {
+  it('runs the selected Overpass filter and removes returned data with the control', async () => {
     const geojson = {
       type: 'FeatureCollection' as const,
       features: [
@@ -153,17 +182,17 @@ describe('PluginControl native layer fallback', () => {
     const control = new PluginControl();
     mapContainer.appendChild(control.onAdd(map as unknown as MapLibreMap));
 
-    const query = '[timeout:25]; nwr["building"]({{bbox}}); out center tags;';
-    const queryEditor = mapContainer.querySelector<HTMLTextAreaElement>('.plugin-control-textarea');
-    if (!queryEditor) throw new Error('Overpass query editor was not created.');
-    queryEditor.value = query;
+    const tagSelect = mapContainer.querySelector<HTMLSelectElement>('.plugin-control-select');
+    if (!tagSelect) throw new Error('Overpass tag selector was not created.');
+    tagSelect.value = 'building=*';
+    tagSelect.dispatchEvent(new Event('change'));
 
     mapContainer.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
     await vi.waitFor(() => expect(map.addLayer).toHaveBeenCalledTimes(3));
 
     expect(fetchOverpssData).toHaveBeenCalledWith(
       { south: 1, west: 2, north: 3, east: 4 },
-      query,
+      '[timeout:25];\n(\n  nwr["building"];\n);',
     );
     expect(map.addSource).toHaveBeenCalledWith('overpass-data-source', {
       type: 'geojson',

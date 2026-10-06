@@ -10,7 +10,7 @@ import { UI_MESSAGES } from "./messages";
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 
 export const DEFAULT_OVERPASS_QUERY =
-  '[timeout:25];\n(\n  nwr;\n);';
+  '(\n  nwr;\n);';
 
 export function buildOverpassQuery(
   query: string,

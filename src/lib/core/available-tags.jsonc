@@ -1,5 +1,6 @@
 [
   // Add one filter per line. Keep values and labels free of double quotes.
+  { "group": "All objects", "key": "nwr", "value": "*", "label": "All map objects (nwr)" },
   { "group": "Food and drink", "key": "amenity", "value": "cafe", "label": "Cafe" },
   { "group": "Food and drink", "key": "amenity", "value": "restaurant", "label": "Restaurant" },
   { "group": "Food and drink", "key": "amenity", "value": "bar", "label": "Bar" },

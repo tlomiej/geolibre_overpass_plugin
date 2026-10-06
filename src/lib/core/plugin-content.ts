@@ -4,7 +4,7 @@ import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-poi';
 import { UI_MESSAGES } from './messages';
 import tagCatalogJson from './available-tags.jsonc?raw';
-import { applyTagFilters, type OverpassTagFilter } from './query-tags';
+import { applyQueryTimeout, applyTagFilters, type OverpassTagFilter } from './query-tags';
 
 interface AvailableOverpassTag extends OverpassTagFilter {
   group: string;
@@ -33,15 +33,19 @@ export function createPluginContent({
   const content = document.createElement('div');
   content.className = 'plugin-control-content';
 
-  const placeholder = document.createElement('p');
-  placeholder.className = 'plugin-control-placeholder';
-  placeholder.textContent = UI_MESSAGES.queryLabel;
-
-  const customTextarea = document.createElement('textarea');
-  customTextarea.className = 'plugin-control-textarea';
-  customTextarea.value = DEFAULT_OVERPASS_QUERY;
-  customTextarea.rows = 10;
-  customTextarea.setAttribute('aria-label', UI_MESSAGES.queryLabel);
+  const timeoutRow = document.createElement('label');
+  timeoutRow.className = 'plugin-control-timeout-row';
+  timeoutRow.textContent = UI_MESSAGES.timeoutLabel;
+  const timeoutInput = document.createElement('input');
+  timeoutInput.className = 'plugin-control-input plugin-control-timeout';
+  timeoutInput.id = 'overpass-query-timeout';
+  timeoutInput.type = 'number';
+  timeoutInput.min = '1';
+  timeoutInput.step = '1';
+  timeoutInput.value = '25';
+  timeoutInput.setAttribute('aria-label', UI_MESSAGES.timeoutLabel);
+  timeoutRow.htmlFor = timeoutInput.id;
+  timeoutRow.appendChild(timeoutInput);
 
   const selectedTags = new Map<string, OverpassTagFilter>();
   const tagSelect = document.createElement('select');
@@ -95,6 +99,17 @@ export function createPluginContent({
   const addTagChip = (tag: OverpassTagFilter) => {
     const id = `${tag.key}=${tag.value}`;
     if (selectedTags.has(id)) return;
+
+    const selectsAllObjects = tag.key === 'nwr' && tag.value === '*';
+    const selectedAllObjects = selectedTags.has('nwr=*');
+    if (selectsAllObjects || selectedAllObjects) {
+      for (const selectedId of selectedTags.keys()) {
+        const option = [...tagSelect.options].find(({ value }) => value === selectedId);
+        if (option) option.disabled = false;
+      }
+      selectedTags.clear();
+    }
+
     selectedTags.set(id, tag);
     const option = [...tagSelect.options].find(({ value }) => value === id);
     if (option) option.disabled = true;
@@ -147,6 +162,12 @@ export function createPluginContent({
   });
   customTagRow.append(customTagKey, customTagValue, addCustomTag);
 
+  const advancedOptions = document.createElement('details');
+  advancedOptions.className = 'plugin-control-advanced-options';
+  const advancedOptionsSummary = document.createElement('summary');
+  advancedOptionsSummary.textContent = UI_MESSAGES.advancedOptions;
+  advancedOptions.append(advancedOptionsSummary, timeoutRow, customTagRow);
+
   const downloadButton = document.createElement('button');
   downloadButton.type = 'button';
   downloadButton.className = 'plugin-control-action';
@@ -162,12 +183,21 @@ export function createPluginContent({
     downloadButton.disabled = true;
     setStatus(UI_MESSAGES.queryRunning);
     try {
+      const timeoutSeconds = Number(timeoutInput.value);
+      if (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1) {
+        setStatus(UI_MESSAGES.invalidTimeout);
+        return;
+      }
+
       const geojson = await fetchData({
         south: mapBounds.getSouth(),
         west: mapBounds.getWest(),
         north: mapBounds.getNorth(),
         east: mapBounds.getEast(),
-      }, applyTagFilters(customTextarea.value, [...selectedTags.values()]));
+      }, applyQueryTimeout(
+        applyTagFilters(DEFAULT_OVERPASS_QUERY, [...selectedTags.values()]),
+        timeoutSeconds,
+      ));
       if (geojson.features.length === 0) {
         setStatus(UI_MESSAGES.noSupportedGeometry);
         return;
@@ -201,11 +231,9 @@ export function createPluginContent({
   status.className = 'plugin-control-status';
   status.textContent = '';
 
-  content.appendChild(placeholder);
   content.appendChild(tagSelect);
-  content.appendChild(customTagRow);
   content.appendChild(chips);
-  content.appendChild(customTextarea);
+  content.appendChild(advancedOptions);
   content.appendChild(downloadButton);
   content.appendChild(status);
 

@@ -1,7 +1,9 @@
 export const UI_MESSAGES = {
   controlTitle: 'Plugin Control',
   closePanel: 'Close panel',
-  queryLabel: 'Overpass query',
+  timeoutLabel: 'Timeout (seconds)',
+  advancedOptions: 'Advanced options',
+  invalidTimeout: 'Enter a whole timeout value of at least 1 second.',
   tagFilterLabel: 'Filter by tag',
   chooseTag: 'Choose a tag...',
   customTagKey: 'Tag key',
