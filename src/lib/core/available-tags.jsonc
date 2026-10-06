@@ -37,6 +37,7 @@
   { "group": "Areas and buildings", "key": "landuse", "value": "*", "label": "All land-use areas" },
   { "group": "Areas and buildings", "key": "boundary", "value": "*", "label": "All boundaries" },
   { "group": "Areas and buildings", "key": "area", "value": "yes", "label": "Mapped areas" },
+  { "group": "Addresses", "key": "addr:housenumber", "value": "*", "label": "Address points" },
   { "group": "Water and hydrography", "key": "waterway", "value": "*", "label": "All waterways" },
   { "group": "Water and hydrography", "key": "waterway", "value": "river", "label": "Rivers" },
   { "group": "Water and hydrography", "key": "natural", "value": "water", "label": "Water bodies" },
