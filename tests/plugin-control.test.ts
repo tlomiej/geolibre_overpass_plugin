@@ -104,7 +104,7 @@ describe('PluginControl native layer fallback', () => {
       }),
     );
     expect(mapContainer.querySelector('.plugin-control-status')?.textContent)
-      .toContain('Wyświetlono obiekty: 3.');
+      .toContain('Displayed objects: 3.');
 
     control.onRemove();
 
