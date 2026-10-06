@@ -1,0 +1,18 @@
+export const UI_MESSAGES = {
+  controlTitle: 'Plugin Control',
+  closePanel: 'Close panel',
+  queryLabel: 'Overpass query',
+  runQuery: 'Run Query',
+  mapUnavailable: 'Map is not available.',
+  queryRunning: 'Running Overpass query...',
+  noSupportedGeometry: 'The query returned no objects with supported geometry.',
+  objectsDisplayed: (count: number) => `Displayed objects: ${count}.`,
+  unableToLoadOverpassData: 'Unable to load Overpass data.',
+  invalidOverpassResponse: 'Overpass API returned an invalid response.',
+  overpassRequestFailed: (status: number) => `Overpass API request failed (${status}).`,
+  failedToRegisterLayer: 'Failed to register native layer.',
+  unableToAddLayer: 'Unable to add layer to the map.',
+  failedToAddLayer: 'Failed to add layer to the map.',
+  overpassLayerName: 'Overpass data',
+  overpassSourceName: 'Overpass API',
+} as const;
