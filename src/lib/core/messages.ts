@@ -3,6 +3,7 @@ export const UI_MESSAGES = {
   closePanel: 'Close panel',
   timeoutLabel: 'Timeout (seconds)',
   advancedOptions: 'Advanced options',
+  uniqueByIdLabel: 'Use unique objects by ID',
   invalidTimeout: 'Enter a whole timeout value of at least 1 second.',
   tagFilterLabel: 'Filter by tag',
   chooseTag: 'Choose a tag...',
