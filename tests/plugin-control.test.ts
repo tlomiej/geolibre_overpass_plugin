@@ -236,4 +236,64 @@ describe('PluginControl native layer fallback', () => {
     expect(map.removeSource).toHaveBeenCalledWith('overpass-data-source');
     mapContainer.remove();
   });
+
+  it('deduplicates returned features by ID by default and keeps every feature when disabled', async () => {
+    const features = {
+      type: 'FeatureCollection' as const,
+      features: [
+        {
+          type: 'Feature' as const,
+          id: 'node/1',
+          geometry: { type: 'Point' as const, coordinates: [1, 2] as [number, number] },
+          properties: {},
+        },
+        {
+          type: 'Feature' as const,
+          id: 'node/1',
+          geometry: { type: 'Point' as const, coordinates: [3, 4] as [number, number] },
+          properties: {},
+        },
+        {
+          type: 'Feature' as const,
+          id: undefined,
+          geometry: { type: 'Point' as const, coordinates: [5, 6] as [number, number] },
+          properties: {},
+        },
+      ],
+    };
+    const fetchData = vi.fn(async () => features);
+    const registerNativeLayer = vi.fn(() => true);
+    const map = {
+      getBounds: () => ({
+        getSouth: () => 1,
+        getWest: () => 2,
+        getNorth: () => 3,
+        getEast: () => 4,
+      }),
+    } as unknown as MapLibreMap;
+    const { content } = createPluginContent({
+      getMap: () => map,
+      setStatus: vi.fn(),
+      registerNativeLayer,
+      fetchData,
+    });
+
+    const uniqueCheckbox = content.querySelector<HTMLInputElement>(
+      '.plugin-control-unique-by-id',
+    );
+    expect(uniqueCheckbox).not.toBeNull();
+    expect(uniqueCheckbox?.checked).toBe(true);
+
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(registerNativeLayer).toHaveBeenCalledTimes(1));
+    expect(registerNativeLayer.mock.calls[0][0].geojson?.features).toHaveLength(2);
+    expect(registerNativeLayer.mock.calls[0][0].metadata?.featureCount).toBe(2);
+
+    uniqueCheckbox!.checked = false;
+    uniqueCheckbox!.dispatchEvent(new Event('change'));
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(registerNativeLayer).toHaveBeenCalledTimes(2));
+    expect(registerNativeLayer.mock.calls[1][0].geojson?.features).toHaveLength(3);
+    expect(registerNativeLayer.mock.calls[1][0].metadata?.featureCount).toBe(3);
+  });
 });
