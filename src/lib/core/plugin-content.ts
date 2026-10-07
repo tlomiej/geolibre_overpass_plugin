@@ -168,6 +168,15 @@ export function createPluginContent({
   advancedOptionsSummary.textContent = UI_MESSAGES.advancedOptions;
   advancedOptions.append(advancedOptionsSummary, timeoutRow, customTagRow);
 
+  const uniqueByIdRow = document.createElement('label');
+  uniqueByIdRow.className = 'plugin-control-unique-by-id-row';
+  const uniqueByIdCheckbox = document.createElement('input');
+  uniqueByIdCheckbox.className = 'plugin-control-unique-by-id';
+  uniqueByIdCheckbox.type = 'checkbox';
+  uniqueByIdCheckbox.checked = true;
+  uniqueByIdCheckbox.setAttribute('aria-label', UI_MESSAGES.uniqueByIdLabel);
+  uniqueByIdRow.append(uniqueByIdCheckbox, document.createTextNode(UI_MESSAGES.uniqueByIdLabel));
+
   const downloadButton = document.createElement('button');
   downloadButton.type = 'button';
   downloadButton.className = 'plugin-control-action';
@@ -203,10 +212,22 @@ export function createPluginContent({
         return;
       }
 
+      const uniqueFeatures = uniqueByIdCheckbox.checked
+        ? geojson.features.filter(
+            (feature, index, features) =>
+              feature.id === undefined ||
+              features.findIndex((candidate) => candidate.id === feature.id) === index,
+          )
+        : geojson.features;
+      const layerGeojson = {
+        ...geojson,
+        features: uniqueFeatures,
+      };
+
       const registered = registerNativeLayer({
         id: 'overpass-data',
         name: UI_MESSAGES.overpassLayerName,
-        geojson,
+        geojson: layerGeojson,
         nativeLayerIds: [
           'overpass-data-fill-layer',
           'overpass-data-line-layer',
@@ -215,10 +236,10 @@ export function createPluginContent({
         sourceIds: ['overpass-data-source'],
         opacity: 1,
         style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill, fillOpacity: 0.65 },
-        metadata: { source: UI_MESSAGES.overpassSourceName, featureCount: geojson.features.length },
+        metadata: { source: UI_MESSAGES.overpassSourceName, featureCount: uniqueFeatures.length },
       });
       if (registered) {
-        setStatus(UI_MESSAGES.objectsDisplayed(geojson.features.length));
+        setStatus(UI_MESSAGES.objectsDisplayed(uniqueFeatures.length));
       }
     } catch (error) {
       setStatus(error instanceof Error ? error.message : UI_MESSAGES.unableToLoadOverpassData);
@@ -234,6 +255,7 @@ export function createPluginContent({
   content.appendChild(tagSelect);
   content.appendChild(chips);
   content.appendChild(advancedOptions);
+  content.appendChild(uniqueByIdRow);
   content.appendChild(downloadButton);
   content.appendChild(status);
 
