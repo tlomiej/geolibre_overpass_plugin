@@ -346,9 +346,9 @@ export class PluginControl implements IControl, DeepLinkConsumer {
           source: sourceId,
           filter: ['==', '$type', 'Polygon'],
           paint: {
-            'fill-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+            'fill-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.fillSymbol,
             'fill-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
-            'fill-outline-color': layer.style.strokeColor ?? layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+            'fill-outline-color': layer.style.strokeColor ?? layer.style.fillColor ?? MAP_COLOR_TOKENS.fillSymbol,
           },
         });
         map.addLayer({
@@ -357,7 +357,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
           source: sourceId,
           filter: ['==', '$type', 'LineString'],
           paint: {
-            'line-color': layer.style.strokeColor ?? layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+            'line-color': layer.style.strokeColor ?? layer.style.fillColor ?? MAP_COLOR_TOKENS.fillSymbol,
             'line-width': layer.style.strokeWidth ?? 2,
             'line-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
           },
@@ -369,7 +369,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
           filter: ['==', '$type', 'Point'],
           paint: {
             'circle-radius': layer.style.circleRadius ?? 6,
-            'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+            'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.fillSymbol,
             'circle-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
             ...(layer.style.strokeColor
               ? { 'circle-stroke-color': layer.style.strokeColor }
@@ -387,7 +387,7 @@ export class PluginControl implements IControl, DeepLinkConsumer {
             source: sourceId,
             paint: {
               'circle-radius': layer.style.circleRadius ?? 6,
-              'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.poiFill,
+              'circle-color': layer.style.fillColor ?? MAP_COLOR_TOKENS.fillSymbol,
               'circle-opacity': (layer.style.fillOpacity ?? 1) * layer.opacity,
               ...(layer.style.strokeColor
                 ? { 'circle-stroke-color': layer.style.strokeColor }
