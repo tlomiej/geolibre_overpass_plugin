@@ -235,7 +235,7 @@ export function createPluginContent({
         ],
         sourceIds: ['overpass-data-source'],
         opacity: 1,
-        style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.poiFill, fillOpacity: 0.65 },
+        style: { circleRadius: 6, fillColor: MAP_COLOR_TOKENS.fillSymbol, fillOpacity: 0.65 },
         metadata: { source: UI_MESSAGES.overpassSourceName, featureCount: uniqueFeatures.length },
       });
       if (registered) {
