@@ -256,8 +256,8 @@ export function createPluginContent({
   content.appendChild(chips);
   content.appendChild(advancedOptions);
   content.appendChild(uniqueByIdRow);
-  content.appendChild(downloadButton);
   content.appendChild(status);
+  content.appendChild(downloadButton);
 
   return { content, status };
 }
