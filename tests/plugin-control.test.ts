@@ -11,6 +11,18 @@ vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
 }));
 
 describe('PluginControl native layer fallback', () => {
+  it('places the full-width query action after the status message', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+
+    expect(content.lastElementChild?.classList.contains('plugin-control-action')).toBe(true);
+    expect(content.querySelector('.plugin-control-status')?.nextElementSibling)
+      .toBe(content.lastElementChild);
+  });
+
   it('places timeout and custom tag controls inside collapsed advanced options', () => {
     const { content } = createPluginContent({
       getMap: () => undefined,
