@@ -36,6 +36,7 @@ describe('PluginControl native layer fallback', () => {
     expect(advancedOptions?.open).toBe(false);
     expect(advancedOptions?.querySelector('.plugin-control-timeout-row')).not.toBeNull();
     expect(advancedOptions?.querySelector('.plugin-control-custom-tag')).not.toBeNull();
+    expect(advancedOptions?.querySelector('.plugin-control-unique-by-id-row')).not.toBeNull();
     expect(content.querySelector('.plugin-control-select')).not.toBeNull();
   });
 
@@ -294,6 +295,7 @@ describe('PluginControl native layer fallback', () => {
       '.plugin-control-unique-by-id',
     );
     expect(uniqueCheckbox).not.toBeNull();
+    expect(uniqueCheckbox?.closest('.plugin-control-advanced-options')).not.toBeNull();
     expect(uniqueCheckbox?.checked).toBe(true);
 
     content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
