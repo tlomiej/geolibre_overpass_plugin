@@ -166,7 +166,6 @@ export function createPluginContent({
   advancedOptions.className = 'plugin-control-advanced-options';
   const advancedOptionsSummary = document.createElement('summary');
   advancedOptionsSummary.textContent = UI_MESSAGES.advancedOptions;
-  advancedOptions.append(advancedOptionsSummary, timeoutRow, customTagRow);
 
   const uniqueByIdRow = document.createElement('label');
   uniqueByIdRow.className = 'plugin-control-unique-by-id-row';
@@ -176,6 +175,7 @@ export function createPluginContent({
   uniqueByIdCheckbox.checked = true;
   uniqueByIdCheckbox.setAttribute('aria-label', UI_MESSAGES.uniqueByIdLabel);
   uniqueByIdRow.append(uniqueByIdCheckbox, document.createTextNode(UI_MESSAGES.uniqueByIdLabel));
+  advancedOptions.append(advancedOptionsSummary, timeoutRow, customTagRow, uniqueByIdRow);
 
   const downloadButton = document.createElement('button');
   downloadButton.type = 'button';
@@ -255,7 +255,6 @@ export function createPluginContent({
   content.appendChild(tagSelect);
   content.appendChild(chips);
   content.appendChild(advancedOptions);
-  content.appendChild(uniqueByIdRow);
   content.appendChild(status);
   content.appendChild(downloadButton);
 
