@@ -76,15 +76,14 @@ describe('PluginControl native layer fallback', () => {
     const query = buildPickerQuery(
       [{ key: 'amenity', value: 'cafe', label: 'Cafe' }],
       40,
-      false,
     );
 
     expect(parsePickerQuery(query)).toEqual({
       tags: [{ key: 'amenity', value: 'cafe', label: 'amenity=cafe' }],
       timeoutSeconds: 40,
-      uniqueById: false,
+      uniqueById: true,
     });
-    expect(queryForApi(query)).not.toContain('GeoLibre:');
+    expect(query).not.toContain('GeoLibre:');
     expect(queryForApi(query)).toContain('[timeout:40]');
   });
 
@@ -116,7 +115,7 @@ describe('PluginControl native layer fallback', () => {
     expect(editor?.hidden).toBe(false);
     expect(editor?.value).toContain('[timeout:25]');
     expect(editor?.value).toContain('nwr["amenity"="cafe"];');
-    expect(editor?.value).toContain('GeoLibre: unique-by-id=true');
+    expect(editor?.value).not.toContain('GeoLibre: unique-by-id');
 
     editor!.value = 'way[highway]; out geom;';
     editor!.dispatchEvent(new Event('input'));
@@ -153,8 +152,9 @@ describe('PluginControl native layer fallback', () => {
 
     uniqueById!.checked = false;
     uniqueById!.dispatchEvent(new Event('change'));
-    expect(editor?.value).toContain('GeoLibre: unique-by-id=false');
+    expect(editor?.value).not.toContain('GeoLibre: unique-by-id');
     expect(editor?.value).toContain('nwr;');
+    expect(uniqueById?.checked).toBe(false);
   });
 
   it('adds arbitrary key-value filters as removable chips and applies them to the query', async () => {

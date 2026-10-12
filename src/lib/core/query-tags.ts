@@ -42,19 +42,18 @@ const TIMEOUT_DIRECTIVE = /^\s*\[timeout:\s*(\d+)\s*\]\s*;?/i;
 export function buildPickerQuery(
   tags: OverpassTagFilter[],
   timeoutSeconds: number,
-  uniqueById: boolean,
 ): string {
   const body = applyTagFilters('(\n  nwr;\n);', tags);
-  return `[timeout:${timeoutSeconds}];\n// GeoLibre: unique-by-id=${uniqueById}\n${body}\nout geom tags;`;
+  return `[timeout:${timeoutSeconds}];\n${body}\nout geom tags;`;
 }
 
 export function queryForApi(query: string): string {
   return query.replace(UNIQUE_BY_ID_DIRECTIVE, '').trim();
 }
 
-export function parsePickerQuery(query: string): ParsedPickerQuery | null {
+export function parsePickerQuery(query: string, uniqueByIdDefault = true): ParsedPickerQuery | null {
   let source = query.trim();
-  let uniqueById = true;
+  let uniqueById = uniqueByIdDefault;
   const uniqueDirective = source.match(UNIQUE_BY_ID_DIRECTIVE);
   if (uniqueDirective) {
     uniqueById = uniqueDirective[1].toLowerCase() === 'true';

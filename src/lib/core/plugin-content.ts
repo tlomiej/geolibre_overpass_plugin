@@ -216,7 +216,6 @@ export function createPluginContent({
     queryEditor.value = buildPickerQuery(
       [...selectedTags.values()],
       Number(timeoutInput.value) || 25,
-      uniqueByIdCheckbox.checked,
     );
     selectorInSync = true;
   };
@@ -238,12 +237,6 @@ export function createPluginContent({
       }
     }
 
-    const uniqueDirective = `// GeoLibre: unique-by-id=${uniqueByIdCheckbox.checked}`;
-    if (/^\s*\/\/\s*GeoLibre:\s*unique-by-id=(true|false)\s*$/im.test(query)) {
-      query = query.replace(/^\s*\/\/\s*GeoLibre:\s*unique-by-id=(true|false)\s*$/im, uniqueDirective);
-    } else {
-      query = `${uniqueDirective}\n${query}`;
-    }
     queryEditor.value = query;
   };
 
@@ -273,7 +266,7 @@ export function createPluginContent({
   };
 
   pickerModeButton.addEventListener('click', () => {
-    const parsed = parsePickerQuery(queryEditor.value);
+    const parsed = parsePickerQuery(queryEditor.value, uniqueByIdCheckbox.checked);
     if (!parsed) {
       selectorInSync = false;
       setMode('advanced');
@@ -355,9 +348,7 @@ export function createPluginContent({
         return;
       }
 
-      const uniqueById = mode === 'advanced'
-        ? !/^\s*\/\/\s*GeoLibre:\s*unique-by-id=false\s*$/im.test(queryEditor.value)
-        : uniqueByIdCheckbox.checked;
+      const uniqueById = uniqueByIdCheckbox.checked;
       const uniqueFeatures = uniqueById
         ? geojson.features.filter(
             (feature, index, features) =>
