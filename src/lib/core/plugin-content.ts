@@ -221,6 +221,41 @@ export function createPluginContent({
     selectorInSync = true;
   };
 
+  const syncAdvancedOptionsToQuery = () => {
+    if (mode === 'picker') {
+      syncQueryFromPicker();
+      return;
+    }
+
+    let query = queryEditor.value;
+    const timeoutSeconds = Number(timeoutInput.value);
+    if (Number.isInteger(timeoutSeconds) && timeoutSeconds >= 1) {
+      const timeoutDirective = `[timeout:${timeoutSeconds}];`;
+      if (/^\s*\[timeout:\s*\d+\s*\]\s*;?/i.test(query)) {
+        query = query.replace(/^\s*\[timeout:\s*\d+\s*\]\s*;?/i, timeoutDirective);
+      } else {
+        query = `${timeoutDirective}\n${query}`;
+      }
+    }
+
+    const uniqueDirective = `// GeoLibre: unique-by-id=${uniqueByIdCheckbox.checked}`;
+    if (/^\s*\/\/\s*GeoLibre:\s*unique-by-id=(true|false)\s*$/im.test(query)) {
+      query = query.replace(/^\s*\/\/\s*GeoLibre:\s*unique-by-id=(true|false)\s*$/im, uniqueDirective);
+    } else {
+      query = `${uniqueDirective}\n${query}`;
+    }
+    queryEditor.value = query;
+  };
+
+  const syncAdvancedOptionsFromQuery = () => {
+    const timeout = queryEditor.value.match(/^\s*\[timeout:\s*(\d+)\s*\]\s*;?/i);
+    if (timeout) timeoutInput.value = timeout[1];
+    const uniqueById = queryEditor.value.match(
+      /^\s*\/\/\s*GeoLibre:\s*unique-by-id=(true|false)\s*$/im,
+    );
+    if (uniqueById) uniqueByIdCheckbox.checked = uniqueById[1].toLowerCase() === 'true';
+  };
+
   const setMode = (nextMode: 'picker' | 'advanced') => {
     mode = nextMode;
     const advanced = mode === 'advanced';
@@ -228,7 +263,7 @@ export function createPluginContent({
     advancedModeButton.setAttribute('aria-pressed', String(advanced));
     tagSelect.hidden = advanced;
     chips.hidden = advanced;
-    advancedOptions.hidden = advanced;
+    customTagRow.hidden = advanced;
     queryEditor.hidden = !advanced;
     modeNotice.textContent = advanced
       ? UI_MESSAGES.pickerModeHint
@@ -267,14 +302,12 @@ export function createPluginContent({
 
   queryEditor.addEventListener('input', () => {
     selectorInSync = false;
+    syncAdvancedOptionsFromQuery();
     modeNotice.textContent = UI_MESSAGES.pickerModeHint;
   });
 
-  timeoutInput.addEventListener('input', syncQueryFromPicker);
-  uniqueByIdCheckbox.addEventListener('change', syncQueryFromPicker);
-  advancedOptions.addEventListener('toggle', () => {
-    advancedOptions.hidden = mode === 'advanced';
-  });
+  timeoutInput.addEventListener('input', syncAdvancedOptionsToQuery);
+  uniqueByIdCheckbox.addEventListener('change', syncAdvancedOptionsToQuery);
 
   const downloadButton = document.createElement('button');
   downloadButton.type = 'button';
@@ -374,6 +407,8 @@ export function createPluginContent({
   content.appendChild(queryEditor);
   content.appendChild(status);
   content.appendChild(downloadButton);
+
+  setMode('picker');
 
   return { content, status };
 }
