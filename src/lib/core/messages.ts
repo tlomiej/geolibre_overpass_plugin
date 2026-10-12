@@ -7,7 +7,6 @@ export const UI_MESSAGES = {
   advancedMode: 'Advanced',
   queryEditorLabel: 'Overpass query',
   pickerModeUnavailable: 'This query cannot be represented by the picker without changing its meaning.',
-  pickerModeHint: 'Picker supports only simple nwr tag selectors with an optional timeout and output statement.',
   emptyQuery: 'Enter an Overpass query before running it.',
   uniqueByIdLabel: 'Use unique objects by ID',
   invalidTimeout: 'Enter a whole timeout value of at least 1 second.',

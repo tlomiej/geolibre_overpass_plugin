@@ -258,11 +258,9 @@ export function createPluginContent({
     chips.hidden = advanced;
     customTagRow.hidden = advanced;
     queryEditor.hidden = !advanced;
-    modeNotice.textContent = advanced
-      ? UI_MESSAGES.pickerModeHint
-      : selectorInSync
-        ? ''
-        : UI_MESSAGES.pickerModeUnavailable;
+    modeNotice.textContent = advanced || selectorInSync
+      ? ''
+      : UI_MESSAGES.pickerModeUnavailable;
   };
 
   pickerModeButton.addEventListener('click', () => {
@@ -296,7 +294,7 @@ export function createPluginContent({
   queryEditor.addEventListener('input', () => {
     selectorInSync = false;
     syncAdvancedOptionsFromQuery();
-    modeNotice.textContent = UI_MESSAGES.pickerModeHint;
+    modeNotice.textContent = '';
   });
 
   timeoutInput.addEventListener('input', syncAdvancedOptionsToQuery);
