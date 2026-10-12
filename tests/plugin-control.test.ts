@@ -3,7 +3,13 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-poi';
 import { createPluginContent } from '../src/lib/core/plugin-content';
-import { applyQueryTimeout, applyTagFilters } from '../src/lib/core/query-tags';
+import {
+  applyQueryTimeout,
+  applyTagFilters,
+  buildPickerQuery,
+  parsePickerQuery,
+  queryForApi,
+} from '../src/lib/core/query-tags';
 
 vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
   ...await importOriginal<typeof import('../src/lib/core/overpass-poi')>(),
@@ -64,6 +70,58 @@ describe('PluginControl native layer fallback', () => {
     expect(applyTagFilters('[out:json]; ( nwr; );', [
       { key: 'nwr', value: '*', label: 'All map objects (nwr)' },
     ])).toBe('[out:json]; ( nwr; );');
+  });
+
+  it('round-trips picker queries and strips plugin metadata before API requests', () => {
+    const query = buildPickerQuery(
+      [{ key: 'amenity', value: 'cafe', label: 'Cafe' }],
+      40,
+      false,
+    );
+
+    expect(parsePickerQuery(query)).toEqual({
+      tags: [{ key: 'amenity', value: 'cafe', label: 'amenity=cafe' }],
+      timeoutSeconds: 40,
+      uniqueById: false,
+    });
+    expect(queryForApi(query)).not.toContain('GeoLibre:');
+    expect(queryForApi(query)).toContain('[timeout:40]');
+  });
+
+  it('rejects picker conversion when query meaning cannot be represented', () => {
+    expect(parsePickerQuery('way[highway]; out geom;')).toBeNull();
+    expect(parsePickerQuery('( nwr["amenity"="cafe"]; way[highway]; );')).toBeNull();
+  });
+
+  it('shows the generated picker query in advanced mode and refuses lossy conversion', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+    const advancedButton = [...content.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Advanced');
+    const pickerButton = [...content.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Picker');
+    const editor = content.querySelector<HTMLTextAreaElement>('.plugin-control-query-editor');
+
+    const tagSelect = content.querySelector<HTMLSelectElement>('.plugin-control-select');
+    tagSelect!.value = 'amenity=cafe';
+    tagSelect!.dispatchEvent(new Event('change'));
+    advancedButton?.click();
+    expect(editor?.hidden).toBe(false);
+    expect(editor?.value).toContain('[timeout:25]');
+    expect(editor?.value).toContain('nwr["amenity"="cafe"];');
+    expect(editor?.value).toContain('GeoLibre: unique-by-id=true');
+
+    editor!.value = 'way[highway]; out geom;';
+    editor!.dispatchEvent(new Event('input'));
+    pickerButton?.click();
+
+    expect(advancedButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(editor?.hidden).toBe(false);
+    expect(content.querySelector('.plugin-control-mode-notice')?.textContent)
+      .toContain('cannot be represented');
   });
 
   it('adds arbitrary key-value filters as removable chips and applies them to the query', async () => {

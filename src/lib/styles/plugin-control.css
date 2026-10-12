@@ -178,6 +178,63 @@
   overflow-y: auto;
 }
 
+.plugin-control-content [hidden] {
+  display: none !important;
+}
+
+.plugin-control-mode-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding: 2px;
+  border: 1px solid var(--pc-input-border);
+  border-radius: 4px;
+  background: var(--pc-hover-bg);
+}
+
+.plugin-control-mode-switch button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 2px;
+  color: var(--pc-label);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.plugin-control-mode-switch button[aria-pressed="true"] {
+  color: var(--pc-text);
+  background: var(--pc-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+}
+
+.plugin-control-mode-switch button:focus-visible {
+  outline: 2px solid var(--pc-accent);
+  outline-offset: 1px;
+}
+
+.plugin-control-mode-notice {
+  margin-bottom: 8px;
+  color: var(--pc-muted);
+  font-size: 11px;
+}
+
+.plugin-control-mode-notice:empty {
+  display: none;
+}
+
+.plugin-control-query-editor {
+  box-sizing: border-box;
+  min-height: 240px;
+  margin-bottom: 8px;
+  resize: vertical;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  tab-size: 2;
+}
+
 /* Demo actions wiring the host callbacks (open folder, deep-link status) */
 .plugin-control-actions {
   display: flex;

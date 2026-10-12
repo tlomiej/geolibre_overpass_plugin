@@ -4,7 +4,14 @@ import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-poi';
 import { UI_MESSAGES } from './messages';
 import tagCatalogJson from './available-tags.jsonc?raw';
-import { applyQueryTimeout, applyTagFilters, type OverpassTagFilter } from './query-tags';
+import {
+  applyQueryTimeout,
+  applyTagFilters,
+  buildPickerQuery,
+  parsePickerQuery,
+  queryForApi,
+  type OverpassTagFilter,
+} from './query-tags';
 
 interface AvailableOverpassTag extends OverpassTagFilter {
   group: string;
@@ -33,6 +40,26 @@ export function createPluginContent({
   const content = document.createElement('div');
   content.className = 'plugin-control-content';
 
+  let mode: 'picker' | 'advanced' = 'picker';
+
+  const modeSwitch = document.createElement('div');
+  modeSwitch.className = 'plugin-control-mode-switch';
+  modeSwitch.setAttribute('role', 'group');
+  modeSwitch.setAttribute('aria-label', 'Query mode');
+  const pickerModeButton = document.createElement('button');
+  pickerModeButton.type = 'button';
+  pickerModeButton.textContent = UI_MESSAGES.pickerMode;
+  pickerModeButton.setAttribute('aria-pressed', 'true');
+  const advancedModeButton = document.createElement('button');
+  advancedModeButton.type = 'button';
+  advancedModeButton.textContent = UI_MESSAGES.advancedMode;
+  advancedModeButton.setAttribute('aria-pressed', 'false');
+  modeSwitch.append(pickerModeButton, advancedModeButton);
+
+  const modeNotice = document.createElement('div');
+  modeNotice.className = 'plugin-control-mode-notice';
+  modeNotice.setAttribute('role', 'status');
+
   const timeoutRow = document.createElement('label');
   timeoutRow.className = 'plugin-control-timeout-row';
   timeoutRow.textContent = UI_MESSAGES.timeoutLabel;
@@ -48,6 +75,7 @@ export function createPluginContent({
   timeoutRow.appendChild(timeoutInput);
 
   const selectedTags = new Map<string, OverpassTagFilter>();
+  let selectorInSync = true;
   const tagSelect = document.createElement('select');
   tagSelect.className = 'plugin-control-input plugin-control-select';
   tagSelect.setAttribute('aria-label', UI_MESSAGES.tagFilterLabel);
@@ -114,6 +142,7 @@ export function createPluginContent({
     const option = [...tagSelect.options].find(({ value }) => value === id);
     if (option) option.disabled = true;
     renderTagChips();
+    syncQueryFromPicker();
   };
 
   const renderTagChips = () => {
@@ -131,6 +160,7 @@ export function createPluginContent({
         const option = [...tagSelect.options].find(({ value }) => value === id);
         if (option) option.disabled = false;
         renderTagChips();
+        syncQueryFromPicker();
       });
       chips.appendChild(chip);
     }
@@ -177,6 +207,75 @@ export function createPluginContent({
   uniqueByIdRow.append(uniqueByIdCheckbox, document.createTextNode(UI_MESSAGES.uniqueByIdLabel));
   advancedOptions.append(advancedOptionsSummary, timeoutRow, customTagRow, uniqueByIdRow);
 
+  const queryEditor = document.createElement('textarea');
+  queryEditor.className = 'plugin-control-input plugin-control-query-editor';
+  queryEditor.setAttribute('aria-label', UI_MESSAGES.queryEditorLabel);
+  queryEditor.setAttribute('spellcheck', 'false');
+
+  const syncQueryFromPicker = () => {
+    queryEditor.value = buildPickerQuery(
+      [...selectedTags.values()],
+      Number(timeoutInput.value) || 25,
+      uniqueByIdCheckbox.checked,
+    );
+    selectorInSync = true;
+  };
+
+  const setMode = (nextMode: 'picker' | 'advanced') => {
+    mode = nextMode;
+    const advanced = mode === 'advanced';
+    pickerModeButton.setAttribute('aria-pressed', String(!advanced));
+    advancedModeButton.setAttribute('aria-pressed', String(advanced));
+    tagSelect.hidden = advanced;
+    chips.hidden = advanced;
+    advancedOptions.hidden = advanced;
+    queryEditor.hidden = !advanced;
+    modeNotice.textContent = advanced
+      ? UI_MESSAGES.pickerModeHint
+      : selectorInSync
+        ? ''
+        : UI_MESSAGES.pickerModeUnavailable;
+  };
+
+  pickerModeButton.addEventListener('click', () => {
+    const parsed = parsePickerQuery(queryEditor.value);
+    if (!parsed) {
+      selectorInSync = false;
+      setMode('advanced');
+      modeNotice.textContent = UI_MESSAGES.pickerModeUnavailable;
+      return;
+    }
+
+    selectedTags.clear();
+    for (const tag of parsed.tags) {
+      selectedTags.set(`${tag.key}=${tag.value}`, tag);
+    }
+    for (const option of tagSelect.options) {
+      option.disabled = selectedTags.has(option.value);
+    }
+    renderTagChips();
+    timeoutInput.value = String(parsed.timeoutSeconds);
+    uniqueByIdCheckbox.checked = parsed.uniqueById;
+    selectorInSync = true;
+    setMode('picker');
+  });
+
+  advancedModeButton.addEventListener('click', () => {
+    if (mode === 'picker') syncQueryFromPicker();
+    setMode('advanced');
+  });
+
+  queryEditor.addEventListener('input', () => {
+    selectorInSync = false;
+    modeNotice.textContent = UI_MESSAGES.pickerModeHint;
+  });
+
+  timeoutInput.addEventListener('input', syncQueryFromPicker);
+  uniqueByIdCheckbox.addEventListener('change', syncQueryFromPicker);
+  advancedOptions.addEventListener('toggle', () => {
+    advancedOptions.hidden = mode === 'advanced';
+  });
+
   const downloadButton = document.createElement('button');
   downloadButton.type = 'button';
   downloadButton.className = 'plugin-control-action';
@@ -193,9 +292,23 @@ export function createPluginContent({
     setStatus(UI_MESSAGES.queryRunning);
     try {
       const timeoutSeconds = Number(timeoutInput.value);
-      if (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1) {
+      if (mode === 'picker' && (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1)) {
         setStatus(UI_MESSAGES.invalidTimeout);
         return;
+      }
+
+      let query: string;
+      if (mode === 'advanced') {
+        query = queryForApi(queryEditor.value);
+        if (!query) {
+          setStatus(UI_MESSAGES.emptyQuery);
+          return;
+        }
+      } else {
+        query = applyQueryTimeout(
+          applyTagFilters(DEFAULT_OVERPASS_QUERY, [...selectedTags.values()]),
+          timeoutSeconds,
+        );
       }
 
       const geojson = await fetchData({
@@ -203,16 +316,16 @@ export function createPluginContent({
         west: mapBounds.getWest(),
         north: mapBounds.getNorth(),
         east: mapBounds.getEast(),
-      }, applyQueryTimeout(
-        applyTagFilters(DEFAULT_OVERPASS_QUERY, [...selectedTags.values()]),
-        timeoutSeconds,
-      ));
+      }, query);
       if (geojson.features.length === 0) {
         setStatus(UI_MESSAGES.noSupportedGeometry);
         return;
       }
 
-      const uniqueFeatures = uniqueByIdCheckbox.checked
+      const uniqueById = mode === 'advanced'
+        ? !/^\s*\/\/\s*GeoLibre:\s*unique-by-id=false\s*$/im.test(queryEditor.value)
+        : uniqueByIdCheckbox.checked;
+      const uniqueFeatures = uniqueById
         ? geojson.features.filter(
             (feature, index, features) =>
               feature.id === undefined ||
@@ -252,9 +365,13 @@ export function createPluginContent({
   status.className = 'plugin-control-status';
   status.textContent = '';
 
+  syncQueryFromPicker();
+  content.appendChild(modeSwitch);
+  content.appendChild(modeNotice);
   content.appendChild(tagSelect);
   content.appendChild(chips);
   content.appendChild(advancedOptions);
+  content.appendChild(queryEditor);
   content.appendChild(status);
   content.appendChild(downloadButton);
 
