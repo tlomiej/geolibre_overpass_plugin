@@ -105,6 +105,10 @@ describe('PluginControl native layer fallback', () => {
       .find((button) => button.textContent === 'Picker');
     const editor = content.querySelector<HTMLTextAreaElement>('.plugin-control-query-editor');
 
+    expect(pickerButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(content.querySelector('.plugin-control-select')?.hidden).toBe(false);
+    expect(editor?.hidden).toBe(true);
+
     const tagSelect = content.querySelector<HTMLSelectElement>('.plugin-control-select');
     tagSelect!.value = 'amenity=cafe';
     tagSelect!.dispatchEvent(new Event('change'));
@@ -122,6 +126,33 @@ describe('PluginControl native layer fallback', () => {
     expect(editor?.hidden).toBe(false);
     expect(content.querySelector('.plugin-control-mode-notice')?.textContent)
       .toContain('cannot be represented');
+  });
+
+  it('keeps advanced settings visible without custom tag entry in advanced mode', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+    const advancedButton = [...content.querySelectorAll('button')]
+      .find((button) => button.textContent === 'Advanced');
+    const editor = content.querySelector<HTMLTextAreaElement>('.plugin-control-query-editor');
+    const options = content.querySelector<HTMLDetailsElement>('.plugin-control-advanced-options');
+    const timeoutInput = content.querySelector<HTMLInputElement>('.plugin-control-timeout');
+    const uniqueById = content.querySelector<HTMLInputElement>('.plugin-control-unique-by-id');
+
+    advancedButton?.click();
+    expect(options?.hidden).toBe(false);
+    expect(options?.querySelector('.plugin-control-custom-tag')?.hidden).toBe(true);
+
+    timeoutInput!.value = '45';
+    timeoutInput!.dispatchEvent(new Event('input'));
+    expect(editor?.value).toContain('[timeout:45]');
+
+    uniqueById!.checked = false;
+    uniqueById!.dispatchEvent(new Event('change'));
+    expect(editor?.value).toContain('GeoLibre: unique-by-id=false');
+    expect(editor?.value).toContain('nwr;');
   });
 
   it('adds arbitrary key-value filters as removable chips and applies them to the query', async () => {
