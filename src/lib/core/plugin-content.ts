@@ -403,8 +403,8 @@ export function createPluginContent({
   content.appendChild(modeNotice);
   content.appendChild(tagSelect);
   content.appendChild(chips);
-  content.appendChild(advancedOptions);
   content.appendChild(queryEditor);
+  content.appendChild(advancedOptions);
   content.appendChild(status);
   content.appendChild(downloadButton);
 

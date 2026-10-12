@@ -143,6 +143,8 @@ describe('PluginControl native layer fallback', () => {
 
     advancedButton?.click();
     expect(options?.hidden).toBe(false);
+    expect(editor?.compareDocumentPosition(options!) & Node.DOCUMENT_POSITION_FOLLOWING)
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(options?.querySelector('.plugin-control-custom-tag')?.hidden).toBe(true);
 
     timeoutInput!.value = '45';
