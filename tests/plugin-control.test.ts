@@ -41,6 +41,7 @@ describe('PluginControl native layer fallback', () => {
 
     expect(advancedOptions?.open).toBe(false);
     expect(advancedOptions?.querySelector('.plugin-control-timeout-row')).not.toBeNull();
+    expect(advancedOptions?.querySelector('.plugin-control-layer-name-row')).not.toBeNull();
     expect(advancedOptions?.querySelector('.plugin-control-custom-tag')).not.toBeNull();
     expect(advancedOptions?.querySelector('.plugin-control-unique-by-id-row')).not.toBeNull();
     expect(content.querySelector('.plugin-control-select')).not.toBeNull();
@@ -155,6 +156,39 @@ describe('PluginControl native layer fallback', () => {
     expect(editor?.value).not.toContain('GeoLibre: unique-by-id');
     expect(editor?.value).toContain('nwr;');
     expect(uniqueById?.checked).toBe(false);
+  });
+
+  it('uses the configured layer name when registering query results', async () => {
+    const fetchData = vi.fn(async () => ({
+      type: 'FeatureCollection' as const,
+      features: [{
+        type: 'Feature' as const,
+        id: 'node/1',
+        geometry: { type: 'Point' as const, coordinates: [1, 2] as [number, number] },
+        properties: {},
+      }],
+    }));
+    const registerNativeLayer = vi.fn(() => true);
+    const map = {
+      getBounds: () => ({
+        getSouth: () => 1,
+        getWest: () => 2,
+        getNorth: () => 3,
+        getEast: () => 4,
+      }),
+    } as unknown as MapLibreMap;
+    const { content } = createPluginContent({
+      getMap: () => map,
+      setStatus: vi.fn(),
+      registerNativeLayer,
+      fetchData,
+    });
+
+    const layerName = content.querySelector<HTMLInputElement>('.plugin-control-layer-name');
+    layerName!.value = 'My custom layer';
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(registerNativeLayer).toHaveBeenCalledTimes(1));
+    expect(registerNativeLayer.mock.calls[0][0].name).toBe('My custom layer');
   });
 
   it('adds arbitrary key-value filters as removable chips and applies them to the query', async () => {
