@@ -74,6 +74,16 @@ export function createPluginContent({
   timeoutRow.htmlFor = timeoutInput.id;
   timeoutRow.appendChild(timeoutInput);
 
+  const layerNameRow = document.createElement('label');
+  layerNameRow.className = 'plugin-control-layer-name-row';
+  layerNameRow.textContent = UI_MESSAGES.layerNameLabel;
+  const layerNameInput = document.createElement('input');
+  layerNameInput.className = 'plugin-control-input plugin-control-layer-name';
+  layerNameInput.type = 'text';
+  layerNameInput.value = UI_MESSAGES.overpassLayerName;
+  layerNameInput.setAttribute('aria-label', UI_MESSAGES.layerNameLabel);
+  layerNameRow.appendChild(layerNameInput);
+
   const selectedTags = new Map<string, OverpassTagFilter>();
   let selectorInSync = true;
   const tagSelect = document.createElement('select');
@@ -205,7 +215,13 @@ export function createPluginContent({
   uniqueByIdCheckbox.checked = true;
   uniqueByIdCheckbox.setAttribute('aria-label', UI_MESSAGES.uniqueByIdLabel);
   uniqueByIdRow.append(uniqueByIdCheckbox, document.createTextNode(UI_MESSAGES.uniqueByIdLabel));
-  advancedOptions.append(advancedOptionsSummary, timeoutRow, customTagRow, uniqueByIdRow);
+  advancedOptions.append(
+    advancedOptionsSummary,
+    timeoutRow,
+    layerNameRow,
+    customTagRow,
+    uniqueByIdRow,
+  );
 
   const queryEditor = document.createElement('textarea');
   queryEditor.className = 'plugin-control-input plugin-control-query-editor';
@@ -361,7 +377,7 @@ export function createPluginContent({
 
       const registered = registerNativeLayer({
         id: 'overpass-data',
-        name: UI_MESSAGES.overpassLayerName,
+        name: layerNameInput.value.trim() || UI_MESSAGES.overpassLayerName,
         geojson: layerGeojson,
         nativeLayerIds: [
           'overpass-data-fill-layer',
