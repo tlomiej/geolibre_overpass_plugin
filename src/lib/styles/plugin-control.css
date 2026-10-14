@@ -326,6 +326,22 @@
   font-size: 12px;
 }
 
+.plugin-control-layer-name-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 2px 8px;
+  color: var(--pc-label);
+  font-size: 12px;
+}
+
+.plugin-control-layer-name {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
 .plugin-control-timeout {
   width: 82px;
   padding: 6px 8px;
