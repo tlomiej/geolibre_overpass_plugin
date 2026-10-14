@@ -8,7 +8,7 @@ export const UI_MESSAGES = {
   queryEditorLabel: 'Overpass query',
   pickerModeUnavailable: 'This query cannot be represented by the picker without changing its meaning.',
   emptyQuery: 'Enter an Overpass query before running it.',
-  uniqueByIdLabel: 'Use unique objects by ID',
+  uniqueByIdLabel: 'Add only unique objects by ID',
   invalidTimeout: 'Enter a whole timeout value of at least 1 second.',
   tagFilterLabel: 'Filter by tag',
   chooseTag: 'Choose a tag...',
