@@ -2,6 +2,7 @@ export const UI_MESSAGES = {
   controlTitle: 'Plugin Control',
   closePanel: 'Close panel',
   timeoutLabel: 'Timeout (seconds)',
+  layerNameLabel: 'Layer name',
   advancedOptions: 'Advanced options',
   pickerMode: 'Picker',
   advancedMode: 'Advanced',
