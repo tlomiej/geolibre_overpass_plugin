@@ -331,6 +331,7 @@ describe('PluginControl native layer fallback', () => {
     expect(fetchOverpssData).toHaveBeenCalledWith(
       { south: 1, west: 2, north: 3, east: 4 },
       '[timeout:25];\n(\n  nwr["building"];\n);',
+      expect.any(AbortSignal),
     );
     expect(map.addSource).toHaveBeenCalledWith('overpass-data-source', {
       type: 'geojson',
