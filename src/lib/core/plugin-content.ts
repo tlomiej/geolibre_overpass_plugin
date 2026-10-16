@@ -320,6 +320,41 @@ export function createPluginContent({
   downloadButton.type = 'button';
   downloadButton.className = 'plugin-control-action';
   downloadButton.textContent = UI_MESSAGES.runQuery;
+
+  const loadingOverlay = document.createElement('div');
+  loadingOverlay.className = 'plugin-control-loading';
+  loadingOverlay.hidden = true;
+  loadingOverlay.setAttribute('role', 'alertdialog');
+  loadingOverlay.setAttribute('aria-live', 'assertive');
+
+  const loadingPanel = document.createElement('div');
+  loadingPanel.className = 'plugin-control-loading-panel';
+  const loadingSpinner = document.createElement('div');
+  loadingSpinner.className = 'plugin-control-loading-spinner';
+  loadingSpinner.setAttribute('aria-hidden', 'true');
+  const loadingDescription = document.createElement('p');
+  loadingDescription.textContent = UI_MESSAGES.queryLoading;
+  const cancelQueryButton = document.createElement('button');
+  cancelQueryButton.type = 'button';
+  cancelQueryButton.className = 'plugin-control-cancel-query';
+  cancelQueryButton.textContent = UI_MESSAGES.cancelQuery;
+  loadingPanel.append(loadingSpinner, loadingDescription, cancelQueryButton);
+  loadingOverlay.appendChild(loadingPanel);
+
+  let activeQueryController: AbortController | undefined;
+  cancelQueryButton.addEventListener('click', () => {
+    const controller = activeQueryController;
+    if (!controller) return;
+
+    activeQueryController = undefined;
+    controller.abort();
+    loadingOverlay.hidden = true;
+    content.removeAttribute('aria-busy');
+    downloadButton.disabled = false;
+    setStatus(UI_MESSAGES.queryCancelled);
+    downloadButton.focus();
+  });
+
   downloadButton.addEventListener('click', async () => {
     const map = getMap();
     const mapBounds = map?.getBounds();
@@ -328,8 +363,7 @@ export function createPluginContent({
       return;
     }
 
-    downloadButton.disabled = true;
-    setStatus(UI_MESSAGES.queryRunning);
+    let queryController: AbortController | undefined;
     try {
       const timeoutSeconds = Number(timeoutInput.value);
       if (mode === 'picker' && (!Number.isInteger(timeoutSeconds) || timeoutSeconds < 1)) {
@@ -351,12 +385,22 @@ export function createPluginContent({
         );
       }
 
+      queryController = new AbortController();
+      activeQueryController = queryController;
+      downloadButton.disabled = true;
+      loadingOverlay.hidden = false;
+      content.scrollTop = 0;
+      content.setAttribute('aria-busy', 'true');
+      setStatus(UI_MESSAGES.queryRunning);
+      cancelQueryButton.focus();
+
       const geojson = await fetchData({
         south: mapBounds.getSouth(),
         west: mapBounds.getWest(),
         north: mapBounds.getNorth(),
         east: mapBounds.getEast(),
-      }, query);
+      }, query, queryController.signal);
+      if (queryController.signal.aborted) return;
       if (geojson.features.length === 0) {
         setStatus(UI_MESSAGES.noSupportedGeometry);
         return;
@@ -393,9 +437,16 @@ export function createPluginContent({
         setStatus(UI_MESSAGES.objectsDisplayed(uniqueFeatures.length));
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : UI_MESSAGES.unableToLoadOverpassData);
+      if (!queryController?.signal.aborted) {
+        setStatus(error instanceof Error ? error.message : UI_MESSAGES.unableToLoadOverpassData);
+      }
     } finally {
-      downloadButton.disabled = false;
+      if (queryController && activeQueryController === queryController) {
+        activeQueryController = undefined;
+        loadingOverlay.hidden = true;
+        content.removeAttribute('aria-busy');
+        downloadButton.disabled = false;
+      }
     }
   });
 
@@ -410,6 +461,7 @@ export function createPluginContent({
   content.appendChild(chips);
   content.appendChild(queryEditor);
   content.appendChild(advancedOptions);
+  content.appendChild(loadingOverlay);
   content.appendChild(status);
   content.appendChild(downloadButton);
 
