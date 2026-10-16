@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
-import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-poi';
+import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-data';
 import { createPluginContent } from '../src/lib/core/plugin-content';
 import {
   applyQueryTimeout,
@@ -11,8 +11,8 @@ import {
   queryForApi,
 } from '../src/lib/core/query-tags';
 
-vi.mock('../src/lib/core/overpass-poi', async (importOriginal) => ({
-  ...await importOriginal<typeof import('../src/lib/core/overpass-poi')>(),
+vi.mock('../src/lib/core/overpass-data', async (importOriginal) => ({
+  ...await importOriginal<typeof import('../src/lib/core/overpass-data')>(),
   fetchOverpssData: vi.fn(),
 }));
 

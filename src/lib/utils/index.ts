@@ -10,8 +10,8 @@ export {
   buildOverpassQuery,
   fetchOverpssData,
   overpassResponseToGeoJSON,
-} from '../core/overpass-poi';
-export { DEFAULT_OVERPASS_QUERY } from '../core/overpass-poi';
+} from '../core/overpass-data';
+export { DEFAULT_OVERPASS_QUERY } from '../core/overpass-data';
 export type {
   OverpassBounds,
   OverpassFeatureCollection,

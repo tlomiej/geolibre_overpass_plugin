@@ -3,7 +3,7 @@ import {
   buildOverpassQuery,
   DEFAULT_OVERPASS_QUERY,
   overpassResponseToGeoJSON,
-} from '../src/lib/core/overpass-poi';
+} from '../src/lib/core/overpass-data';
 
 describe('buildOverpassQuery', () => {
   it('inserts map bounds into an editable query without restricting its filters', () => {

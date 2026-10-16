@@ -6,7 +6,7 @@ import type {
   PluginControlEventHandler,
 } from './types';
 import type { DeepLinkConsumer } from '../utils/deep-link';
-import { fetchOverpssData } from './overpass-poi';
+import { fetchOverpssData } from './overpass-data';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { createPluginContent } from './plugin-content';

@@ -1,7 +1,7 @@
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
-import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-poi';
+import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-data';
 import { UI_MESSAGES } from './messages';
 import tagCatalogJson from './available-tags.jsonc?raw';
 import {
