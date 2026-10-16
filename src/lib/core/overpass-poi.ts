@@ -255,11 +255,13 @@ function pointInRing(
 export async function fetchOverpssData(
   bounds: OverpassBounds,
   query: string,
+  signal?: AbortSignal,
 ): Promise<OverpassFeatureCollection> {
   const response = await fetch(OVERPASS_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ data: buildOverpassQuery(query, bounds) }),
+    signal,
   });
 
   if (!response.ok) {
