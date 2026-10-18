@@ -446,7 +446,7 @@ describe('PluginControl native layer fallback', () => {
     mapContainer.remove();
   });
 
-  it('deduplicates returned features by ID by default and keeps every feature when disabled', async () => {
+  it('accumulates same-name query results and honors ID deduplication', async () => {
     const features = {
       type: 'FeatureCollection' as const,
       features: [
@@ -490,6 +490,10 @@ describe('PluginControl native layer fallback', () => {
     const uniqueCheckbox = content.querySelector<HTMLInputElement>(
       '.plugin-control-unique-by-id',
     );
+    const layerNameInput = content.querySelector<HTMLInputElement>(
+      '.plugin-control-layer-name',
+    );
+    layerNameInput!.value = 'Combined results';
     expect(uniqueCheckbox).not.toBeNull();
     expect(uniqueCheckbox?.closest('.plugin-control-advanced-options')).not.toBeNull();
     expect(uniqueCheckbox?.checked).toBe(true);
@@ -498,12 +502,25 @@ describe('PluginControl native layer fallback', () => {
     await vi.waitFor(() => expect(registerNativeLayer).toHaveBeenCalledTimes(1));
     expect(registerNativeLayer.mock.calls[0][0].geojson?.features).toHaveLength(2);
     expect(registerNativeLayer.mock.calls[0][0].metadata?.featureCount).toBe(2);
+    expect(registerNativeLayer.mock.calls[0][0].name).toBe('Combined results');
 
     uniqueCheckbox!.checked = false;
     uniqueCheckbox!.dispatchEvent(new Event('change'));
     content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
     await vi.waitFor(() => expect(registerNativeLayer).toHaveBeenCalledTimes(2));
-    expect(registerNativeLayer.mock.calls[1][0].geojson?.features).toHaveLength(3);
-    expect(registerNativeLayer.mock.calls[1][0].metadata?.featureCount).toBe(3);
+    expect(registerNativeLayer.mock.calls[1][0].geojson?.features).toHaveLength(5);
+    expect(registerNativeLayer.mock.calls[1][0].metadata?.featureCount).toBe(5);
+    expect(registerNativeLayer.mock.calls[1][0].id).toBe(registerNativeLayer.mock.calls[0][0].id);
+    expect(registerNativeLayer.mock.calls[1][0].sourceIds).toEqual(
+      registerNativeLayer.mock.calls[0][0].sourceIds,
+    );
+
+    layerNameInput!.value = 'Other results';
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    await vi.waitFor(() => expect(registerNativeLayer).toHaveBeenCalledTimes(3));
+    expect(registerNativeLayer.mock.calls[2][0].name).toBe('Other results');
+    expect(registerNativeLayer.mock.calls[2][0].geojson?.features).toHaveLength(3);
+    expect(registerNativeLayer.mock.calls[2][0].id)
+      .not.toBe(registerNativeLayer.mock.calls[1][0].id);
   });
 });

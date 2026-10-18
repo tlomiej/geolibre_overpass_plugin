@@ -3,6 +3,7 @@ import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-data';
 import { UI_MESSAGES } from './messages';
+import type { OverpassFeatureCollection } from './PluginModels';
 import tagCatalogJson from './available-tags.jsonc?raw';
 import {
   applyQueryTimeout,
@@ -88,6 +89,14 @@ export function createPluginContent({
   layerNameRow.appendChild(layerNameInput);
 
   const selectedTags = new Map<string, OverpassTagFilter>();
+  const featuresByLayerName = new Map<
+    string,
+    OverpassFeatureCollection['features']
+  >();
+  const layerIdsByName = new Map<
+    string,
+    { id: string; nativeLayerIds: string[]; sourceIds: string[] }
+  >();
   const defaultPickerTag = AVAILABLE_OVERPASS_TAGS.find(
     ({ key, value }) => key === 'nwr' && value === '*',
   );
@@ -418,29 +427,55 @@ export function createPluginContent({
         return;
       }
 
+      const layerName = layerNameInput.value.trim() || UI_MESSAGES.overpassLayerName;
+      let layerIds = layerIdsByName.get(layerName);
+      if (!layerIds) {
+        const layerId = layerName === UI_MESSAGES.overpassLayerName
+          ? 'overpass-data'
+          : `overpass-data-${hashLayerName(layerName)}`;
+        layerIds = {
+          id: layerId,
+          nativeLayerIds: [
+            `${layerId}-fill-layer`,
+            `${layerId}-line-layer`,
+            `${layerId}-point-layer`,
+          ],
+          sourceIds: [`${layerId}-source`],
+        };
+        layerIdsByName.set(layerName, layerIds);
+      }
+
       const uniqueById = uniqueByIdCheckbox.checked;
-      const uniqueFeatures = uniqueById
+      const queryFeatures = uniqueById
         ? geojson.features.filter(
             (feature, index, features) =>
               feature.id === undefined ||
               features.findIndex((candidate) => candidate.id === feature.id) === index,
           )
         : geojson.features;
+      const accumulatedFeatures = featuresByLayerName.get(layerName) ?? [];
+      const existingFeatureIds = uniqueById
+        ? new Set(accumulatedFeatures.flatMap(({ id }) => id === undefined ? [] : [id]))
+        : undefined;
+      const appendedFeatures = existingFeatureIds
+        ? queryFeatures.filter((feature) => {
+            if (feature.id === undefined || !existingFeatureIds.has(feature.id)) {
+              if (feature.id !== undefined) existingFeatureIds.add(feature.id);
+              return true;
+            }
+            return false;
+          })
+        : queryFeatures;
+      const allFeatures = [...accumulatedFeatures, ...appendedFeatures];
       const layerGeojson = {
         ...geojson,
-        features: uniqueFeatures,
+        features: allFeatures,
       };
 
       const registered = registerNativeLayer({
-        id: 'overpass-data',
-        name: layerNameInput.value.trim() || UI_MESSAGES.overpassLayerName,
+        ...layerIds,
+        name: layerName,
         geojson: layerGeojson,
-        nativeLayerIds: [
-          'overpass-data-fill-layer',
-          'overpass-data-line-layer',
-          'overpass-data-point-layer',
-        ],
-        sourceIds: ['overpass-data-source'],
         opacity: 1,
         style: {
           circleRadius: 6,
@@ -449,10 +484,11 @@ export function createPluginContent({
           strokeWidth: 2,
           fillOpacity: 0.65,
         },
-        metadata: { source: UI_MESSAGES.overpassSourceName, featureCount: uniqueFeatures.length },
+        metadata: { source: UI_MESSAGES.overpassSourceName, featureCount: allFeatures.length },
       });
       if (registered) {
-        setStatus(UI_MESSAGES.objectsDisplayed(uniqueFeatures.length));
+        featuresByLayerName.set(layerName, allFeatures);
+        setStatus(UI_MESSAGES.objectsDisplayed(allFeatures.length));
       }
     } catch (error) {
       if (!queryController?.signal.aborted) {
@@ -501,4 +537,12 @@ export function createPluginContent({
   setMode('picker');
 
   return { content, status };
+}
+
+function hashLayerName(layerName: string): string {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < layerName.length; index += 1) {
+    hash = Math.imul(hash ^ layerName.charCodeAt(index), 0x01000193);
+  }
+  return (hash >>> 0).toString(16);
 }
