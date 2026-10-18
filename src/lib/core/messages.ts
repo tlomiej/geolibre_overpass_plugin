@@ -25,7 +25,7 @@ export const UI_MESSAGES = {
   queryLoading: 'Sending the query to Overpass, downloading results, and preparing map features…',
   cancelQuery: 'Cancel query',
   queryCancelled: 'Query cancelled.',
-  noSupportedGeometry: 'The query returned no objects with supported geometry.',
+  noSupportedGeometry: 'The query returned no objects.',
   objectsDisplayed: (count: number) => `Displayed objects: ${count}.`,
   unableToLoadOverpassData: 'Unable to load Overpass data.',
   invalidOverpassResponse: 'Overpass API returned an invalid response.',
