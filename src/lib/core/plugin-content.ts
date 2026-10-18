@@ -56,6 +56,9 @@ export function createPluginContent({
   advancedModeButton.setAttribute('aria-pressed', 'false');
   modeSwitch.append(pickerModeButton, advancedModeButton);
 
+  const scrollArea = document.createElement('div');
+  scrollArea.className = 'plugin-control-scroll-area';
+
   const modeNotice = document.createElement('div');
   modeNotice.className = 'plugin-control-mode-notice';
   modeNotice.setAttribute('role', 'status');
@@ -85,6 +88,9 @@ export function createPluginContent({
   layerNameRow.appendChild(layerNameInput);
 
   const selectedTags = new Map<string, OverpassTagFilter>();
+  const defaultPickerTag = AVAILABLE_OVERPASS_TAGS.find(
+    ({ key, value }) => key === 'nwr' && value === '*',
+  );
   let selectorInSync = true;
   const tagSelect = document.createElement('select');
   tagSelect.className = 'plugin-control-input plugin-control-select';
@@ -171,6 +177,7 @@ export function createPluginContent({
         if (option) option.disabled = false;
         renderTagChips();
         syncQueryFromPicker();
+        setStatus('');
       });
       chips.appendChild(chip);
     }
@@ -184,7 +191,10 @@ export function createPluginContent({
     const tag = AVAILABLE_OVERPASS_TAGS.find(
       (candidate) => candidate.key === key && candidate.value === value,
     );
-    if (tag) addTagChip(tag);
+    if (tag) {
+      addTagChip(tag);
+      setStatus('');
+    }
     tagSelect.value = '';
   });
 
@@ -197,6 +207,7 @@ export function createPluginContent({
     }
 
     addTagChip({ key, value, label: `${key}=${value}` });
+    setStatus('');
     customTagKey.value = '';
     customTagValue.value = '';
   });
@@ -229,11 +240,11 @@ export function createPluginContent({
   queryEditor.setAttribute('spellcheck', 'false');
 
   const syncQueryFromPicker = () => {
-    queryEditor.value = buildPickerQuery(
-      [...selectedTags.values()],
-      Number(timeoutInput.value) || 25,
-    );
+    queryEditor.value = selectedTags.size === 0
+      ? ''
+      : buildPickerQuery([...selectedTags.values()], Number(timeoutInput.value) || 25);
     selectorInSync = true;
+    if (mode === 'picker') modeNotice.textContent = '';
   };
 
   const syncAdvancedOptionsToQuery = () => {
@@ -283,8 +294,7 @@ export function createPluginContent({
     const parsed = parsePickerQuery(queryEditor.value, uniqueByIdCheckbox.checked);
     if (!parsed) {
       selectorInSync = false;
-      setMode('advanced');
-      modeNotice.textContent = UI_MESSAGES.pickerModeUnavailable;
+      setMode('picker');
       return;
     }
 
@@ -303,7 +313,7 @@ export function createPluginContent({
   });
 
   advancedModeButton.addEventListener('click', () => {
-    if (mode === 'picker') syncQueryFromPicker();
+    if (mode === 'picker' && selectorInSync) syncQueryFromPicker();
     setMode('advanced');
   });
 
@@ -326,6 +336,8 @@ export function createPluginContent({
   loadingOverlay.hidden = true;
   loadingOverlay.setAttribute('role', 'alertdialog');
   loadingOverlay.setAttribute('aria-live', 'assertive');
+  loadingOverlay.setAttribute('aria-modal', 'true');
+  loadingOverlay.setAttribute('aria-label', UI_MESSAGES.queryLoading);
 
   const loadingPanel = document.createElement('div');
   loadingPanel.className = 'plugin-control-loading-panel';
@@ -348,9 +360,7 @@ export function createPluginContent({
 
     activeQueryController = undefined;
     controller.abort();
-    loadingOverlay.hidden = true;
-    content.removeAttribute('aria-busy');
-    downloadButton.disabled = false;
+    setLoadingState(false);
     setStatus(UI_MESSAGES.queryCancelled);
     downloadButton.focus();
   });
@@ -370,6 +380,10 @@ export function createPluginContent({
         setStatus(UI_MESSAGES.invalidTimeout);
         return;
       }
+      if (mode === 'picker' && selectedTags.size === 0) {
+        setStatus(UI_MESSAGES.noPickerFilters);
+        return;
+      }
 
       let query: string;
       if (mode === 'advanced') {
@@ -387,10 +401,8 @@ export function createPluginContent({
 
       queryController = new AbortController();
       activeQueryController = queryController;
-      downloadButton.disabled = true;
-      loadingOverlay.hidden = false;
-      content.scrollTop = 0;
-      content.setAttribute('aria-busy', 'true');
+      setLoadingState(true);
+      scrollArea.scrollTop = 0;
       setStatus(UI_MESSAGES.queryRunning);
       cancelQueryButton.focus();
 
@@ -443,9 +455,7 @@ export function createPluginContent({
     } finally {
       if (queryController && activeQueryController === queryController) {
         activeQueryController = undefined;
-        loadingOverlay.hidden = true;
-        content.removeAttribute('aria-busy');
-        downloadButton.disabled = false;
+        setLoadingState(false);
       }
     }
   });
@@ -454,16 +464,33 @@ export function createPluginContent({
   status.className = 'plugin-control-status';
   status.textContent = '';
 
+  const footer = document.createElement('div');
+  footer.className = 'plugin-control-footer';
+
+  const setLoadingState = (isLoading: boolean) => {
+    loadingOverlay.hidden = !isLoading;
+    modeSwitch.inert = isLoading;
+    modeNotice.inert = isLoading;
+    scrollArea.inert = isLoading;
+    footer.inert = isLoading;
+    downloadButton.disabled = isLoading;
+    if (isLoading) {
+      content.setAttribute('aria-busy', 'true');
+    } else {
+      content.removeAttribute('aria-busy');
+    }
+  };
+
+  if (defaultPickerTag) addTagChip(defaultPickerTag);
   syncQueryFromPicker();
-  content.appendChild(modeSwitch);
-  content.appendChild(modeNotice);
-  content.appendChild(tagSelect);
-  content.appendChild(chips);
-  content.appendChild(queryEditor);
-  content.appendChild(advancedOptions);
-  content.appendChild(loadingOverlay);
-  content.appendChild(status);
-  content.appendChild(downloadButton);
+  scrollArea.append(
+    tagSelect,
+    chips,
+    queryEditor,
+    advancedOptions,
+  );
+  footer.append(status, downloadButton);
+  content.append(modeSwitch, modeNotice, scrollArea, footer, loadingOverlay);
 
   setMode('picker');
 
