@@ -122,21 +122,24 @@
   min-width: 240px;
   max-width: 420px;
   max-height: 500px;
-  overflow-y: auto;
+  box-sizing: border-box;
+  overflow: hidden;
   z-index: 1000;
   padding: 8px;
   font-size: 12px;
   line-height: 1.4;
   display: none;
+  flex-direction: column;
 }
 
 .plugin-control-panel.expanded {
-  display: block;
+  display: flex;
 }
 
 /* Panel header */
 .plugin-control-header {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
@@ -175,8 +178,24 @@
 /* Content */
 .plugin-control-content {
   position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
   max-height: 400px;
+  overflow: hidden;
+}
+
+.plugin-control-scroll-area {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+}
+
+.plugin-control-footer {
+  flex: 0 0 auto;
+  padding-top: 8px;
 }
 
 .plugin-control-loading {
@@ -237,6 +256,7 @@
 
 .plugin-control-mode-switch {
   display: grid;
+  flex: 0 0 auto;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
   margin-bottom: 8px;
@@ -268,6 +288,7 @@
 }
 
 .plugin-control-mode-notice {
+  flex: 0 0 auto;
   margin-bottom: 8px;
   color: var(--pc-muted);
   font-size: 11px;
@@ -326,12 +347,12 @@
 .plugin-control-input:focus {
 }
 
-.plugin-control-content::-webkit-scrollbar-thumb {
+.plugin-control-scroll-area::-webkit-scrollbar-thumb {
   background: var(--pc-scrollbar-thumb);
   border-radius: 3px;
 }
 
-.plugin-control-content::-webkit-scrollbar-thumb:hover {
+.plugin-control-scroll-area::-webkit-scrollbar-thumb:hover {
   background: var(--pc-scrollbar-thumb-hover);
 }
 
