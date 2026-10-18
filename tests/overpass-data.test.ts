@@ -26,8 +26,8 @@ describe('buildOverpassQuery', () => {
       east: 0.1,
     });
     expect(defaultQuery).toContain('nwr(51.4,-0.2,51.6,0.1);');
-    expect(defaultQuery).toContain('out geom tags;');
-    expect(DEFAULT_OVERPASS_QUERY).not.toContain('out geom tags;');
+    expect(defaultQuery).toContain('out body geom;');
+    expect(DEFAULT_OVERPASS_QUERY).not.toContain('out body geom;');
     expect(DEFAULT_OVERPASS_QUERY).not.toContain('[out:json]');
   });
 });

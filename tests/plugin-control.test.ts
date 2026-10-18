@@ -3,6 +3,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-data';
 import { UI_MESSAGES } from '../src/lib/core/messages';
+import { MAP_COLOR_TOKENS } from '../src/lib/styles/map-color-tokens';
 import { createPluginContent } from '../src/lib/core/plugin-content';
 import {
   applyQueryTimeout,
@@ -109,6 +110,7 @@ describe('PluginControl native layer fallback', () => {
       timeoutSeconds: 40,
       uniqueById: true,
     });
+    expect(query).toContain('out body geom;');
     expect(query).not.toContain('GeoLibre:');
     expect(queryForApi(query)).toContain('[timeout:40]');
   });
@@ -417,7 +419,10 @@ describe('PluginControl native layer fallback', () => {
         id: 'overpass-data-line-layer',
         type: 'line',
         source: 'overpass-data-source',
-        paint: expect.objectContaining({ 'line-opacity': 0.65 }),
+        paint: expect.objectContaining({
+          'line-opacity': 0.65,
+          'line-color': MAP_COLOR_TOKENS.fillSymbol,
+        }),
       }),
     );
     expect(map.addLayer).toHaveBeenNthCalledWith(

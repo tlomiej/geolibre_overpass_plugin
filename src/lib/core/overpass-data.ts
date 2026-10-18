@@ -29,7 +29,7 @@ export function buildOverpassQuery(
     boundedQuery,
   )
     ? boundedQuery
-    : `${boundedQuery}\nout geom tags;`;
+    : `${boundedQuery}\nout body geom;`;
   return `[out:json]${outputQuery}`;
 }
 

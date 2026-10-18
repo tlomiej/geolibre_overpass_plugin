@@ -44,7 +44,7 @@ export function buildPickerQuery(
   timeoutSeconds: number,
 ): string {
   const body = applyTagFilters('(\n  nwr;\n);', tags);
-  return `[timeout:${timeoutSeconds}];\n${body}\nout geom tags;`;
+  return `[timeout:${timeoutSeconds}];\n${body}\nout body geom;`;
 }
 
 export function queryForApi(query: string): string {
@@ -69,7 +69,7 @@ export function parsePickerQuery(query: string, uniqueByIdDefault = true): Parse
   }
 
   source = source.replace(/^\[out:json\]\s*/i, '').trim();
-  source = source.replace(/\s*out\s+geom\s+tags\s*;\s*$/i, '').trim();
+  source = source.replace(/\s*out\s+(?:body\s+)?geom(?:\s+tags)?\s*;\s*$/i, '').trim();
   const groupMatch = source.match(/^\(\s*([\s\S]*?)\s*\)\s*;?$/);
   if (!groupMatch) return null;
 
