@@ -1,4 +1,5 @@
 import { PluginControl } from "./lib/core/PluginControl";
+import { PLUGIN_VERSION } from "./VERSION";
 import type { PluginState } from "./lib/core/types";
 import type {
   GeoLibreAppAPI,
@@ -75,7 +76,7 @@ function isPluginState(value: unknown): value is Partial<PluginState> {
 export const plugin: GeoLibrePlugin<PluginControl> = {
   id: "overpass-turbo-plugin",
   name: "Overpass Turbo Plugin",
-  version: "0.1.1",
+  version: PLUGIN_VERSION,
   urlParameterNames: [PLUGIN_DATA_PARAM],
   activate(app) {
     control = control ?? createControl(app);
