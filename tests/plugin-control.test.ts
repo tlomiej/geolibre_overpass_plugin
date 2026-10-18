@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Map as MapLibreMap } from 'maplibre-gl';
 import { PluginControl } from '../src/lib/core/PluginControl';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpass-data';
+import { UI_MESSAGES } from '../src/lib/core/messages';
 import { createPluginContent } from '../src/lib/core/plugin-content';
 import {
   applyQueryTimeout,
@@ -24,9 +25,33 @@ describe('PluginControl native layer fallback', () => {
       registerNativeLayer: () => true,
     });
 
-    expect(content.lastElementChild?.classList.contains('plugin-control-action')).toBe(true);
+    const footer = content.querySelector('.plugin-control-footer');
+    expect(footer?.lastElementChild?.classList.contains('plugin-control-action')).toBe(true);
     expect(content.querySelector('.plugin-control-status')?.nextElementSibling)
-      .toBe(content.lastElementChild);
+      .toBe(footer?.lastElementChild);
+  });
+
+  it('keeps mode tabs and query action outside the scrolling area', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+    const scrollArea = content.querySelector('.plugin-control-scroll-area');
+    const modeNotice = content.querySelector('.plugin-control-mode-notice');
+    const loadingOverlay = content.querySelector('.plugin-control-loading');
+
+    expect(content.firstElementChild?.classList.contains('plugin-control-mode-switch')).toBe(true);
+    expect(modeNotice?.parentElement).toBe(content);
+    expect(modeNotice?.nextElementSibling).toBe(scrollArea);
+    expect(scrollArea?.contains(content.querySelector('.plugin-control-select'))).toBe(true);
+    expect(scrollArea?.contains(content.querySelector('.plugin-control-query-editor'))).toBe(true);
+    expect(scrollArea?.contains(content.querySelector('.plugin-control-advanced-options'))).toBe(true);
+    expect(scrollArea?.contains(content.querySelector('.plugin-control-action'))).toBe(false);
+    expect(loadingOverlay?.parentElement).toBe(content);
+    expect(content.lastElementChild).toBe(loadingOverlay);
+    expect(scrollArea?.contains(loadingOverlay)).toBe(false);
+    expect(loadingOverlay?.getAttribute('aria-modal')).toBe('true');
   });
 
   it('places timeout and custom tag controls inside collapsed advanced options', () => {
@@ -93,7 +118,7 @@ describe('PluginControl native layer fallback', () => {
     expect(parsePickerQuery('( nwr["amenity"="cafe"]; way[highway]; );')).toBeNull();
   });
 
-  it('shows the generated picker query in advanced mode and refuses lossy conversion', () => {
+  it('switches to picker without losing an unsupported advanced query', () => {
     const { content } = createPluginContent({
       getMap: () => undefined,
       setStatus: vi.fn(),
@@ -122,10 +147,20 @@ describe('PluginControl native layer fallback', () => {
     editor!.dispatchEvent(new Event('input'));
     pickerButton?.click();
 
-    expect(advancedButton?.getAttribute('aria-pressed')).toBe('true');
-    expect(editor?.hidden).toBe(false);
+    expect(pickerButton?.getAttribute('aria-pressed')).toBe('true');
+    expect(advancedButton?.getAttribute('aria-pressed')).toBe('false');
+    expect(editor?.hidden).toBe(true);
+    expect(editor?.value).toBe('way[highway]; out geom;');
     expect(content.querySelector('.plugin-control-mode-notice')?.textContent)
-      .toContain('cannot be represented');
+      .toContain('Run Query will use the selected Picker filters');
+
+    advancedButton?.click();
+    expect(editor?.hidden).toBe(false);
+    expect(editor?.value).toBe('way[highway]; out geom;');
+
+    pickerButton?.click();
+    content.querySelector<HTMLButtonElement>('.plugin-control-chip')?.click();
+    expect(content.querySelector('.plugin-control-mode-notice')?.textContent).toBe('');
   });
 
   it('keeps advanced settings visible without custom tag entry in advanced mode', () => {
@@ -156,6 +191,26 @@ describe('PluginControl native layer fallback', () => {
     expect(editor?.value).not.toContain('GeoLibre: unique-by-id');
     expect(editor?.value).toContain('nwr;');
     expect(uniqueById?.checked).toBe(false);
+  });
+
+  it('shows the default all-objects query as the selected picker filter', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+    const tagSelect = content.querySelector<HTMLSelectElement>('.plugin-control-select');
+    const defaultChip = content.querySelector<HTMLButtonElement>('.plugin-control-chip');
+    const queryEditor = content.querySelector<HTMLTextAreaElement>('.plugin-control-query-editor');
+
+    expect(defaultChip?.textContent).toBe('All map objects (nwr)');
+    expect(defaultChip?.getAttribute('aria-label')).toBe('Remove All map objects (nwr) filter');
+    expect(tagSelect?.querySelector<HTMLOptionElement>('option[value="nwr=*"]')?.disabled)
+      .toBe(true);
+    expect(queryEditor?.value).toContain('nwr;');
+    defaultChip?.click();
+    expect(content.querySelector('.plugin-control-chip')).toBeNull();
+    expect(queryEditor?.value).toBe('');
   });
 
   it('uses the configured layer name when registering query results', async () => {
@@ -262,8 +317,18 @@ describe('PluginControl native layer fallback', () => {
 
     chip?.click();
     expect(content.querySelector('.plugin-control-chip')).toBeNull();
+    expect(content.querySelector<HTMLTextAreaElement>('.plugin-control-query-editor')?.value)
+      .toBe('');
     expect(tagSelect.querySelector<HTMLOptionElement>('option[value="amenity=cafe"]')?.disabled)
       .toBe(false);
+    content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
+    expect(setStatus).toHaveBeenLastCalledWith(UI_MESSAGES.noPickerFilters);
+    expect(fetchData).toHaveBeenCalledTimes(1);
+
+    tagSelect.value = 'nwr=*';
+    tagSelect.dispatchEvent(new Event('change'));
+    expect(content.querySelector('.plugin-control-chip')?.textContent)
+      .toBe('All map objects (nwr)');
     content.querySelector<HTMLButtonElement>('.plugin-control-action')?.click();
     await vi.waitFor(() => expect(fetchData).toHaveBeenCalledTimes(2));
     expect(fetchData.mock.calls[1][1]).toContain(DEFAULT_OVERPASS_QUERY);
