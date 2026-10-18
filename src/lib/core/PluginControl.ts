@@ -621,6 +621,11 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     const buttonRight = mapRect.right - buttonRect.right;
 
     const panelGap = 5; // Gap between button and panel
+    const opensDown = position === 'top-left' || position === 'top-right';
+    const availableHeight = opensDown
+      ? mapRect.bottom - buttonRect.bottom - panelGap
+      : buttonRect.top - mapRect.top - panelGap;
+    this._panel.style.maxHeight = `${Math.max(0, Math.min(500, availableHeight))}px`;
 
     // Reset all positioning
     this._panel.style.top = '';
