@@ -1,5 +1,6 @@
 import type {
   OverpassBounds,
+  OverpassCoordinate,
   OverpassElement,
   OverpassFeatureCollection,
   OverpassGeoJSONGeometry,
@@ -123,7 +124,7 @@ function overpassElementToGeometry(
 }
 
 function toPositions(
-  coordinates: Array<{ lat: number; lon: number }>,
+  coordinates: OverpassCoordinate[],
 ): OverpassPosition[] {
   return coordinates
     .filter(({ lat, lon }) => isCoordinate(lat, lon))
