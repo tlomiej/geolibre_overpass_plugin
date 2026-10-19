@@ -5,6 +5,11 @@ export interface OverpassBounds {
   east: number;
 }
 
+export interface OverpassCoordinate {
+  lat: number;
+  lon: number;
+}
+
 export interface OverpassFeatureCollection {
   type: 'FeatureCollection';
   features: Array<{
@@ -29,13 +34,13 @@ export interface OverpassElement {
   id: number;
   lat?: number;
   lon?: number;
-  center?: { lat: number; lon: number };
+  center?: OverpassCoordinate;
   tags?: Record<string, string>;
-  geometry?: Array<{ lat: number; lon: number }>;
+  geometry?: OverpassCoordinate[];
   members?: Array<{
     type: string;
     ref: number;
     role?: string;
-    geometry?: Array<{ lat: number; lon: number }>;
+    geometry?: OverpassCoordinate[];
   }>;
 }
