@@ -56,7 +56,7 @@
   { "group": "Water and hydrography", "key": "natural", "value": "wetland", "label": "Wetlands" },
   { "group": "Water and hydrography", "key": "natural", "value": "spring", "label": "Springs" },
   { "group": "Water and hydrography", "key": "water", "value": "*", "label": "All tagged water areas" },
+  { "group": "Accessibility", "key": "wheelchair", "value": "yes", "label": "Wheelchair accessible" }
   { "group": "Nature", "key": "natural", "value": "wood", "label": "Woods" },
   { "group": "Nature", "key": "leisure", "value": "nature_reserve", "label": "Nature reserves" },
-  { "group": "Accessibility", "key": "wheelchair", "value": "yes", "label": "Wheelchair accessible" }
 ]
