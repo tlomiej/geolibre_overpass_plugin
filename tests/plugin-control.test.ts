@@ -5,6 +5,7 @@ import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from '../src/lib/core/overpa
 import { UI_MESSAGES } from '../src/lib/core/messages';
 import { MAP_COLOR_TOKENS } from '../src/lib/styles/map-color-tokens';
 import { createPluginContent } from '../src/lib/core/plugin-content';
+import { PLUGIN_VERSION } from '../src/VERSION';
 import {
   applyQueryTimeout,
   applyTagFilters,
@@ -71,6 +72,21 @@ describe('PluginControl native layer fallback', () => {
     expect(advancedOptions?.querySelector('.plugin-control-custom-tag')).not.toBeNull();
     expect(advancedOptions?.querySelector('.plugin-control-unique-by-id-row')).not.toBeNull();
     expect(content.querySelector('.plugin-control-select')).not.toBeNull();
+  });
+
+  it('shows collapsed plugin info with the current version', () => {
+    const { content } = createPluginContent({
+      getMap: () => undefined,
+      setStatus: vi.fn(),
+      registerNativeLayer: () => true,
+    });
+    const about = content.querySelector<HTMLDetailsElement>('.plugin-control-about');
+
+    expect(about?.open).toBe(false);
+    expect(content.querySelector('.plugin-control-scroll-area')?.contains(about)).toBe(true);
+    expect(about?.querySelector('.plugin-control-about-version')?.textContent).toBe(
+      `Version ${PLUGIN_VERSION}`,
+    );
   });
 
   it('adds or replaces the query timeout from the numeric setting', () => {

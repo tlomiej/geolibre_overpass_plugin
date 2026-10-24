@@ -35,4 +35,13 @@ export const UI_MESSAGES = {
   failedToAddLayer: 'Failed to add layer to the map.',
   overpassLayerName: 'Overpass data',
   overpassSourceName: 'Overpass API',
+  aboutTitle: 'About this plugin',
+  aboutDescription:
+    'Downloads OpenStreetMap data from the Overpass API for the visible map area and adds it as a layer.',
+  aboutSteps: [
+    'Move the map to the area you need.',
+    'Pick tags (Picker) or write an Overpass query (Advanced).',
+    'Click Run Query. Repeating a query with the same layer name adds objects to that layer.',
+  ],
+  aboutVersion: (version: string) => `Version ${version}`,
 } as const;

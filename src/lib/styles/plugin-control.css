@@ -460,6 +460,31 @@
   margin-left: 2px;
 }
 
+.plugin-control-about {
+  margin: 0 0 8px;
+  border-bottom: 1px solid var(--pc-input-border);
+  font-size: 12px;
+}
+
+.plugin-control-about summary {
+  padding: 8px 2px;
+  color: var(--pc-muted);
+  cursor: pointer;
+}
+
+.plugin-control-about p,
+.plugin-control-about ol {
+  margin: 0 2px 8px;
+}
+
+.plugin-control-about ol {
+  padding-left: 18px;
+}
+
+.plugin-control-about .plugin-control-about-version {
+  color: var(--pc-muted);
+}
+
 .plugin-control-add-tag {
   border: 1px solid var(--pc-input-border);
   border-radius: 4px;

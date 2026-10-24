@@ -3,6 +3,7 @@ import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-data';
 import { UI_MESSAGES } from './messages';
+import { PLUGIN_VERSION } from '../../VERSION';
 import type { OverpassFeatureCollection } from './PluginModels';
 import tagCatalogJson from './available-tags.jsonc?raw';
 import {
@@ -242,6 +243,23 @@ export function createPluginContent({
     customTagRow,
     uniqueByIdRow,
   );
+
+  const about = document.createElement('details');
+  about.className = 'plugin-control-about';
+  const aboutSummary = document.createElement('summary');
+  aboutSummary.textContent = UI_MESSAGES.aboutTitle;
+  const aboutDescription = document.createElement('p');
+  aboutDescription.textContent = UI_MESSAGES.aboutDescription;
+  const aboutSteps = document.createElement('ol');
+  for (const step of UI_MESSAGES.aboutSteps) {
+    const item = document.createElement('li');
+    item.textContent = step;
+    aboutSteps.appendChild(item);
+  }
+  const aboutVersion = document.createElement('p');
+  aboutVersion.className = 'plugin-control-about-version';
+  aboutVersion.textContent = UI_MESSAGES.aboutVersion(PLUGIN_VERSION);
+  about.append(aboutSummary, aboutDescription, aboutSteps, aboutVersion);
 
   const queryEditor = document.createElement('textarea');
   queryEditor.className = 'plugin-control-input plugin-control-query-editor';
@@ -530,6 +548,7 @@ export function createPluginContent({
     chips,
     queryEditor,
     advancedOptions,
+    about,
   );
   footer.append(status, downloadButton);
   content.append(modeSwitch, modeNotice, scrollArea, footer, loadingOverlay);
