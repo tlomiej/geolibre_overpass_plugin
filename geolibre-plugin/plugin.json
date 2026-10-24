@@ -3,6 +3,6 @@
   "name": "Overpass Turbo Plugin",
   "version": "0.1.3",
   "entry": "dist/index.js",
-  "description": "A starter GeoLibre plugin bundle with a MapLibre control.",
+  "description": "Download OpenStreetMap data from the Overpass API for the current map view and add it as a layer.",
   "style": "dist/style.css"
 }

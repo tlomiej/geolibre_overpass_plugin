@@ -1,3 +1,84 @@
+# Overpass Turbo Plugin for GeoLibre
+
+**Version:** 0.1.3 · **Plugin id:** `overpass-turbo-plugin` · **License:** MIT
+
+Overpass Turbo Plugin lets you download OpenStreetMap (OSM) data from the
+[Overpass API](https://overpass-api.de/) straight into GeoLibre. You pick the
+objects you want (for example shops, schools or bus stops), the plugin queries
+the area currently visible on the map, and adds the results as a layer.
+
+## What the plugin does
+
+- Sends an Overpass query for the **current map view** (the visible area is
+  used as the bounding box).
+- Converts the result to GeoJSON: nodes become points, ways become lines or
+  areas, and multipolygon/boundary relations become polygons.
+- Adds the result as a native GeoLibre layer. OSM tags are kept as feature
+  attributes, together with `osm_type` and `osm_id`.
+- Running more queries with the same layer name **adds** objects to that layer
+  instead of replacing it.
+
+## How to use it
+
+1. Open the plugin control on the map (top-right corner by default).
+2. Zoom and pan the map to the area you want. Only this area is queried, so
+   keep it reasonably small.
+3. Choose what to download, in one of two modes:
+   - **Picker** – choose a tag from **Filter by tag** (e.g. `amenity=school`),
+     or type your own **Tag key** and **Tag value** and click **Add tag**. You
+     can add several tags; remove one by clicking its chip.
+   - **Advanced** – write your own Overpass QL query in the **Overpass query**
+     editor. `{{bbox}}` is replaced with the visible area, and statements
+     without an area filter are limited to it automatically. If the query has
+     no `out` statement, `out body geom;` is added.
+4. Optionally open **Advanced options**:
+   - **Timeout (seconds)** – how long Overpass may work on the query
+     (default 25).
+   - **Layer name** – name of the target layer (default `Overpass data`).
+     Use a new name to get a separate layer.
+   - **Add only unique objects by ID** – skip objects that are already in
+     the layer.
+5. Click **Run Query**. While the query runs you can stop it with
+   **Cancel query**.
+6. When it finishes, the status line shows how many objects are displayed,
+   and the layer appears in GeoLibre's layer list.
+
+Tips:
+
+- "The query returned no objects." means nothing matched in the visible area.
+  Try a larger area or a different tag.
+- If Overpass returns an error (e.g. 429 or 504), wait a moment, make the
+  area smaller or raise the timeout.
+- An internet connection is required; data comes from
+  `https://overpass-api.de/api/interpreter`.
+
+## Version information
+
+| Item | Value |
+| --- | --- |
+| Plugin version | `0.1.3` |
+| Plugin id | `overpass-turbo-plugin` |
+| Package file | `geolibre-plugin/overpass-turbo-plugin-0.1.3.zip` |
+| Host application | GeoLibre Desktop or GeoLibre web app |
+| Map library | MapLibre GL JS `>= 3.0.0` (developed against 5.x) |
+| Data source | Overpass API (`overpass-api.de`) |
+
+The version number is stored in three places and **must be the same in all
+of them**:
+
+- `package.json` → `version`
+- `geolibre-plugin/plugin.json` → `version`
+- `src/VERSION.ts` → `PLUGIN_VERSION`
+
+To release a new version: update the number in all three files, update the
+zip name in this README, then run `npm run package:geolibre`. The zip is
+written to `geolibre-plugin/overpass-turbo-plugin-<version>.zip`.
+
+---
+
+The sections below come from the GeoLibre plugin template this plugin is
+based on and describe the development setup.
+
 # GeoLibre Plugin Template
 
 A template for creating GeoLibre Desktop plugins backed by MapLibre GL JS controls. It still includes the standalone MapLibre control and React wrapper so plugin authors can develop and test the control outside GeoLibre.
