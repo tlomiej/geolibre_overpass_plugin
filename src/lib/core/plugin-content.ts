@@ -259,7 +259,24 @@ export function createPluginContent({
   const aboutVersion = document.createElement('p');
   aboutVersion.className = 'plugin-control-about-version';
   aboutVersion.textContent = UI_MESSAGES.aboutVersion(PLUGIN_VERSION);
-  about.append(aboutSummary, aboutDescription, aboutSteps, aboutVersion);
+  const createExternalLink = (text: string, href: string) => {
+    const link = document.createElement('a');
+    link.textContent = text;
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    return link;
+  };
+  const aboutDataSource = document.createElement('p');
+  aboutDataSource.className = 'plugin-control-about-source';
+  aboutDataSource.append(
+    UI_MESSAGES.aboutDataSourcePrefix,
+    createExternalLink(UI_MESSAGES.openStreetMapContributors, UI_MESSAGES.openStreetMapCopyrightUrl),
+    UI_MESSAGES.aboutLicense,
+    createExternalLink(UI_MESSAGES.overpassSourceName, UI_MESSAGES.overpassApiUrl),
+    '.',
+  );
+  about.append(aboutSummary, aboutDescription, aboutSteps, aboutDataSource, aboutVersion);
 
   const queryEditor = document.createElement('textarea');
   queryEditor.className = 'plugin-control-input plugin-control-query-editor';
@@ -502,7 +519,11 @@ export function createPluginContent({
           strokeWidth: 2,
           fillOpacity: 0.65,
         },
-        metadata: { source: UI_MESSAGES.overpassSourceName, featureCount: allFeatures.length },
+        metadata: {
+          source: UI_MESSAGES.overpassSourceName,
+          attribution: UI_MESSAGES.overpassAttribution,
+          featureCount: allFeatures.length,
+        },
       });
       if (registered) {
         featuresByLayerName.set(layerName, allFeatures);

@@ -44,4 +44,10 @@ export const UI_MESSAGES = {
     'Click Run Query. Repeating a query with the same layer name adds objects to that layer.',
   ],
   aboutVersion: (version: string) => `Version ${version}`,
+  aboutDataSourcePrefix: 'Data: ',
+  openStreetMapContributors: '© OpenStreetMap contributors',
+  openStreetMapCopyrightUrl: 'https://www.openstreetmap.org/copyright',
+  aboutLicense: ' (ODbL), downloaded via ',
+  overpassApiUrl: 'https://wiki.openstreetmap.org/wiki/Overpass_API',
+  overpassAttribution: '© OpenStreetMap contributors (ODbL), via Overpass API',
 } as const;

@@ -52,6 +52,24 @@ Tips:
 - An internet connection is required; data comes from
   `https://overpass-api.de/api/interpreter`.
 
+## Data source and attribution
+
+All data comes from [OpenStreetMap](https://www.openstreetmap.org/) and is
+downloaded through the [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API)
+(public instance at [overpass-api.de](https://overpass-api.de/)).
+
+- OpenStreetMap data is © OpenStreetMap contributors and is available under
+  the [Open Database License (ODbL)](https://www.openstreetmap.org/copyright).
+  When you publish maps or data made with this plugin, credit
+  "© OpenStreetMap contributors".
+- The public Overpass API instance is shared by many users. Keep queries small
+  and follow its [usage policy](https://dev.overpass-api.de/overpass-doc/en/preface/commons.html).
+- This plugin is not affiliated with OpenStreetMap, the OpenStreetMap
+  Foundation, Overpass API or overpass turbo.
+
+Each layer added by the plugin stores this attribution in its metadata
+(`attribution: "© OpenStreetMap contributors (ODbL), via Overpass API"`).
+
 ## Version information
 
 | Item | Value |

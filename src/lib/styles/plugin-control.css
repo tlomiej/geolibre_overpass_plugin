@@ -481,8 +481,14 @@
   padding-left: 18px;
 }
 
-.plugin-control-about .plugin-control-about-version {
+.plugin-control-about .plugin-control-about-version,
+.plugin-control-about .plugin-control-about-source {
   color: var(--pc-muted);
+}
+
+.plugin-control-about a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .plugin-control-add-tag {

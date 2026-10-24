@@ -491,8 +491,10 @@ export class PluginControl implements IControl, DeepLinkConsumer {
     toggleBtn.innerHTML = `
       <span class="plugin-control-icon">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <rect x="1" y="1" width="22" height="22" rx="5" fill="#f6c845" stroke="none"/>
-          <text x="12" y="16" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#263238" stroke="none">OT</text>
+          <path d="M1.5 5.5 7.5 3.5 14.5 5.5 20.5 3.5V15.5L14.5 17.5 7.5 15.5 1.5 17.5Z" fill="#f6c845" stroke="#263238" stroke-width="1.4" stroke-linejoin="round"/>
+          <path d="M7.5 3.5V15.5M14.5 5.5V17.5" stroke="#263238" stroke-width="1.2"/>
+          <circle cx="17" cy="17" r="6" fill="#2563eb" stroke="#ffffff" stroke-width="1.5"/>
+          <path d="M17 13.5V20M14.3 17.5 17 20.2 19.7 17.5" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
     `;

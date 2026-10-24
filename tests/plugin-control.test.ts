@@ -87,6 +87,12 @@ describe('PluginControl native layer fallback', () => {
     expect(about?.querySelector('.plugin-control-about-version')?.textContent).toBe(
       `Version ${PLUGIN_VERSION}`,
     );
+    const links = [...(about?.querySelectorAll('a') ?? [])].map(({ href }) => href);
+    expect(links).toEqual([
+      UI_MESSAGES.openStreetMapCopyrightUrl,
+      UI_MESSAGES.overpassApiUrl,
+    ]);
+    expect(about?.textContent).toContain('© OpenStreetMap contributors');
   });
 
   it('adds or replaces the query timeout from the numeric setting', () => {
