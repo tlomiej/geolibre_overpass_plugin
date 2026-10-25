@@ -1,6 +1,6 @@
 # Overpass Turbo Plugin for GeoLibre
 
-**Version:** 0.1.3 · **Plugin id:** `overpass-turbo-plugin` · **License:** MIT
+**Version:** 0.1.4 · **Plugin id:** `overpass-turbo-plugin` · **License:** MIT
 
 Overpass Turbo Plugin lets you download OpenStreetMap (OSM) data from the
 [Overpass API](https://overpass-api.de/) straight into GeoLibre. You pick the
