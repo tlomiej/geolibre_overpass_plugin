@@ -238,9 +238,9 @@ export function createPluginContent({
   uniqueByIdRow.append(uniqueByIdCheckbox, document.createTextNode(UI_MESSAGES.uniqueByIdLabel));
   advancedOptions.append(
     advancedOptionsSummary,
+    customTagRow,
     timeoutRow,
     layerNameRow,
-    customTagRow,
     uniqueByIdRow,
   );
 
