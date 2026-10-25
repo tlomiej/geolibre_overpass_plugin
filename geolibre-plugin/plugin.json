@@ -1,7 +1,7 @@
 {
   "id": "overpass-turbo-plugin",
   "name": "Overpass Turbo Plugin",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "entry": "dist/index.js",
   "description": "Download OpenStreetMap data from the Overpass API for the current map view and add it as a layer.",
   "style": "dist/style.css"
