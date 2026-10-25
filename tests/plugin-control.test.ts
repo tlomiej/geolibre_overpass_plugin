@@ -70,6 +70,8 @@ describe('PluginControl native layer fallback', () => {
     expect(advancedOptions?.querySelector('.plugin-control-timeout-row')).not.toBeNull();
     expect(advancedOptions?.querySelector('.plugin-control-layer-name-row')).not.toBeNull();
     expect(advancedOptions?.querySelector('.plugin-control-custom-tag')).not.toBeNull();
+    expect(advancedOptions?.querySelector('summary')?.nextElementSibling)
+      .toBe(advancedOptions?.querySelector('.plugin-control-custom-tag'));
     expect(advancedOptions?.querySelector('.plugin-control-unique-by-id-row')).not.toBeNull();
     expect(content.querySelector('.plugin-control-select')).not.toBeNull();
   });
