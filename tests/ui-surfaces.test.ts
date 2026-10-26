@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { plugin } from "../src/geolibre";
+import manifest from "../geolibre-plugin/plugin.json";
 import type {
   GeoLibreAppAPI,
   GeoLibreControl,
@@ -13,12 +14,12 @@ import {
   TOOLBAR_MENU_ID,
   registerTemplateToolbarMenu,
 } from "../src/lib/geolibre/toolbar-menu";
-import { RIGHT_PANEL_ID } from "../src/lib/geolibre/right-panel";
 
 function createApp(overrides: Partial<GeoLibreAppAPI<GeoLibreControl>> = {}) {
   const app: GeoLibreAppAPI<GeoLibreControl> = {
     addMapControl: () => true,
     removeMapControl: () => undefined,
+    registerRightPanel: vi.fn(() => vi.fn()),
     registerFloatingPanel: vi.fn(() => vi.fn()),
     registerToolbarMenu: vi.fn(() => vi.fn()),
     openRightPanel: vi.fn(() => true),
@@ -31,8 +32,21 @@ function createApp(overrides: Partial<GeoLibreAppAPI<GeoLibreControl>> = {}) {
 }
 
 describe("plugin identity", () => {
-  it("uses the requested OverpassTurbo plugin ID", () => {
-    expect(plugin.id).toBe("overpssturboplugin");
+  it("uses the plugin ID from the GeoLibre manifest", () => {
+    expect(plugin.id).toBe(manifest.id);
+    expect(plugin.id).toBe("overpass-turbo-plugin");
+    expect(plugin.version).toBe(manifest.version);
+  });
+});
+
+describe("plugin activation", () => {
+  it("does not register or open the right panel", () => {
+    const app = createApp();
+    plugin.activate(app as Parameters<typeof plugin.activate>[0]);
+
+    expect(app.registerRightPanel).not.toHaveBeenCalled();
+    expect(app.openRightPanel).not.toHaveBeenCalled();
+    plugin.deactivate?.(app as Parameters<typeof plugin.activate>[0]);
   });
 });
 
@@ -92,19 +106,16 @@ describe("registerTemplateToolbarMenu", () => {
     expect(dispose).toBeTypeOf("function");
     expect(menu?.id).toBe(TOOLBAR_MENU_ID);
 
-    const openRight = findAction(menu!, "open-right");
     const openFloating = findAction(menu!, "open-floating");
-    expect(openRight && "onSelect" in openRight).toBe(true);
-
-    (openRight as { onSelect: () => void }).onSelect();
-    expect(app.openRightPanel).toHaveBeenCalledWith(RIGHT_PANEL_ID);
+    expect(findAction(menu!, "open-right")).toBeUndefined();
+    expect(openFloating && "onSelect" in openFloating).toBe(true);
 
     (openFloating as { onSelect: () => void }).onSelect();
     expect(app.openFloatingPanel).toHaveBeenCalledWith(FLOATING_PANEL_ID);
 
     const closePanels = findAction(menu!, "close-panels");
     (closePanels as { onSelect: () => void }).onSelect();
-    expect(app.closeRightPanel).toHaveBeenCalledWith(RIGHT_PANEL_ID);
+    expect(app.closeRightPanel).not.toHaveBeenCalled();
     expect(app.closeFloatingPanel).toHaveBeenCalledWith(FLOATING_PANEL_ID);
   });
 

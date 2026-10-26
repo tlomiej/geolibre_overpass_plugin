@@ -7,7 +7,6 @@ import type {
   GeoLibrePlugin,
 } from "./lib/geolibre/host-api";
 import { registerTemplateFloatingPanel } from "./lib/geolibre/floating-panel";
-import { registerTemplateRightPanel } from "./lib/geolibre/right-panel";
 import { registerTemplateToolbarMenu } from "./lib/geolibre/toolbar-menu";
 import { PLUGIN_DATA_PARAM, maybeHandleDeepLink } from "./lib/utils/deep-link";
 import "./lib/styles/plugin-control.css";
@@ -20,9 +19,7 @@ let control: PluginControl | null = null;
 let position: GeoLibreMapControlPosition = "top-right";
 let pendingState: Partial<PluginState> | null = null;
 // Disposers for the demo UI surfaces; each is null when the host does not
-// provide that surface. See ./lib/geolibre/{right-panel,floating-panel,
-// toolbar-menu}.ts.
-let disposeRightPanel: (() => void) | null = null;
+// provide that surface. See ./lib/geolibre/{floating-panel,toolbar-menu}.ts.
 let disposeFloatingPanel: (() => void) | null = null;
 let disposeToolbarMenu: (() => void) | null = null;
 
@@ -85,11 +82,9 @@ export const plugin: GeoLibrePlugin<PluginControl> = {
       control = null;
       return false;
     }
-    // Demonstrate the native plugin UI surfaces. Remove any you do not need
-    // (and their imports) if your plugin only needs a map control. The right
-    // panel opens immediately; the floating panel is registered and opened on
-    // demand from the toolbar menu.
-    disposeRightPanel = registerTemplateRightPanel(app);
+    // Demonstrate the native plugin UI surfaces. The template right panel is
+    // disabled; the floating panel is registered and opened on demand from the
+    // toolbar menu.
     disposeFloatingPanel = registerTemplateFloatingPanel(app);
     disposeToolbarMenu = registerTemplateToolbarMenu(app);
   },
@@ -104,8 +99,6 @@ export const plugin: GeoLibrePlugin<PluginControl> = {
     disposeToolbarMenu = null;
     disposeFloatingPanel?.();
     disposeFloatingPanel = null;
-    disposeRightPanel?.();
-    disposeRightPanel = null;
     if (!control) return;
     pendingState = control.getState();
     app.removeMapControl(control);
