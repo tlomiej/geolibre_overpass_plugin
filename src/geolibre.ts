@@ -27,10 +27,7 @@ function createControl(app: AppAPI): PluginControl {
   const nextControl = new PluginControl({
     collapsed: pendingState?.collapsed ?? true,
     panelWidth: pendingState?.panelWidth ?? 300,
-    title: 'GeoLibre Plugin Template',
-    // Bind optional host capabilities; each falls back to a no-op on hosts (or
-    // standalone usage) that do not provide them.
-    pickFiles: () => app.pickLocalDirectoryFiles?.() ?? Promise.resolve(null),
+    title: "Overpass Turbo Plugin",
     registerNativeLayer: (layer) => {
       if (!app.registerExternalNativeLayer) return false;
       app.registerExternalNativeLayer(layer);
