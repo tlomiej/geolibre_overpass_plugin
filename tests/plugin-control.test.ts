@@ -423,6 +423,7 @@ describe('PluginControl native layer fallback', () => {
       { south: 1, west: 2, north: 3, east: 4 },
       '[timeout:25];\n(\n  nwr["building"];\n);',
       expect.any(AbortSignal),
+      { url: 'https://overpass-api.de/api/interpreter', headers: {} },
     );
     expect(map.addSource).toHaveBeenCalledWith('overpass-data-source', {
       type: 'geojson',
