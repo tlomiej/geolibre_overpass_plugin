@@ -7,7 +7,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
-  base: "/geolibre-plugin-template/",
+  // Relative base so the examples work on GitHub Pages (/geolibre_overpass_plugin/)
+  // and in the Docker image (/geolibre-plugin-template/).
+  base: "./",
   build: {
     outDir: "dist-examples",
     rollupOptions: {
