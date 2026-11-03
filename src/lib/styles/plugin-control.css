@@ -460,6 +460,40 @@
   margin-left: 2px;
 }
 
+.plugin-control-endpoint {
+  margin: 0 2px 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--pc-input-border);
+}
+
+.plugin-control-endpoint-row,
+.plugin-control-endpoint-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+  color: var(--pc-label);
+  font-size: 12px;
+}
+
+.plugin-control-endpoint .plugin-control-input {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.plugin-control-endpoint-select {
+  cursor: pointer;
+}
+
+.plugin-control-endpoint-info {
+  margin: 0 0 8px;
+  color: var(--pc-muted);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .plugin-control-about {
   margin: 0 0 8px;
   border-bottom: 1px solid var(--pc-input-border);
