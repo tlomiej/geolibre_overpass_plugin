@@ -3,6 +3,12 @@ import type { GeoLibreNativeLayerRegistration } from '../geolibre/host-api';
 import { MAP_COLOR_TOKENS } from '../styles/map-color-tokens';
 import { DEFAULT_OVERPASS_QUERY, fetchOverpssData } from './overpass-data';
 import { UI_MESSAGES } from './messages';
+import {
+  DEFAULT_OVERPASS_ENDPOINT,
+  OVERPASS_ENDPOINTS_CONFIG,
+  resolveOverpassEndpoint,
+  type OverpassEndpointRequest,
+} from './overpass-endpoints';
 import { PLUGIN_VERSION } from '../../VERSION';
 import type { OverpassFeatureCollection } from './PluginModels';
 import tagCatalogJson from './available-tags.jsonc?raw';
@@ -236,12 +242,97 @@ export function createPluginContent({
   uniqueByIdCheckbox.checked = true;
   uniqueByIdCheckbox.setAttribute('aria-label', UI_MESSAGES.uniqueByIdLabel);
   uniqueByIdRow.append(uniqueByIdCheckbox, document.createTextNode(UI_MESSAGES.uniqueByIdLabel));
+
+  const createExternalLink = (text: string, href: string) => {
+    const link = document.createElement('a');
+    link.textContent = text;
+    link.href = href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    return link;
+  };
+
+  const endpointSettings = loadEndpointSettings();
+  const endpointSection = document.createElement('div');
+  endpointSection.className = 'plugin-control-endpoint';
+  const endpointRow = document.createElement('label');
+  endpointRow.className = 'plugin-control-endpoint-row';
+  endpointRow.textContent = UI_MESSAGES.endpointLabel;
+  const endpointSelect = document.createElement('select');
+  endpointSelect.className = 'plugin-control-input plugin-control-endpoint-select';
+  endpointSelect.setAttribute('aria-label', UI_MESSAGES.endpointLabel);
+  for (const endpoint of OVERPASS_ENDPOINTS_CONFIG.endpoints) {
+    const option = document.createElement('option');
+    option.value = endpoint.id;
+    option.textContent = endpoint.name;
+    endpointSelect.appendChild(option);
+  }
+  endpointSelect.value = OVERPASS_ENDPOINTS_CONFIG.endpoints.some(
+    ({ id }) => id === endpointSettings.id,
+  )
+    ? endpointSettings.id!
+    : DEFAULT_OVERPASS_ENDPOINT.id;
+  endpointRow.appendChild(endpointSelect);
+  const endpointInfo = document.createElement('p');
+  endpointInfo.className = 'plugin-control-endpoint-info';
+  const endpointFields = document.createElement('div');
+  endpointFields.className = 'plugin-control-endpoint-fields';
+  endpointSection.append(endpointRow, endpointInfo, endpointFields);
+
+  const selectedEndpoint = () =>
+    OVERPASS_ENDPOINTS_CONFIG.endpoints.find(({ id }) => id === endpointSelect.value) ??
+    DEFAULT_OVERPASS_ENDPOINT;
+
+  const renderEndpointFields = () => {
+    const endpoint = selectedEndpoint();
+    const values = (endpointSettings.values[endpoint.id] ??= {});
+
+    endpointInfo.replaceChildren();
+    if (endpoint.description) endpointInfo.append(endpoint.description);
+    if (endpoint.website) {
+      endpointInfo.append(' ', createExternalLink(UI_MESSAGES.endpointWebsite, endpoint.website));
+    }
+    endpointInfo.hidden = !endpointInfo.hasChildNodes();
+
+    endpointFields.replaceChildren();
+    for (const field of endpoint.fields ?? []) {
+      const fieldRow = document.createElement('label');
+      fieldRow.className = 'plugin-control-endpoint-field';
+      fieldRow.textContent = field.label;
+      const input = document.createElement('input');
+      input.className = 'plugin-control-input';
+      input.type = field.type ?? 'text';
+      input.name = field.name;
+      input.value = values[field.name] ?? '';
+      input.required = Boolean(field.required);
+      input.autocomplete = 'off';
+      input.spellcheck = false;
+      if (field.placeholder) input.placeholder = field.placeholder;
+      input.setAttribute('aria-label', field.label);
+      input.addEventListener('input', () => {
+        values[field.name] = input.value;
+        saveEndpointSettings(endpointSettings);
+      });
+      fieldRow.appendChild(input);
+      endpointFields.appendChild(fieldRow);
+    }
+  };
+
+  endpointSelect.addEventListener('change', () => {
+    endpointSettings.id = endpointSelect.value;
+    saveEndpointSettings(endpointSettings);
+    renderEndpointFields();
+    setStatus('');
+  });
+  renderEndpointFields();
+
   advancedOptions.append(
     advancedOptionsSummary,
     customTagRow,
     timeoutRow,
     layerNameRow,
     uniqueByIdRow,
+    endpointSection,
   );
 
   const about = document.createElement('details');
@@ -259,14 +350,6 @@ export function createPluginContent({
   const aboutVersion = document.createElement('p');
   aboutVersion.className = 'plugin-control-about-version';
   aboutVersion.textContent = UI_MESSAGES.aboutVersion(PLUGIN_VERSION);
-  const createExternalLink = (text: string, href: string) => {
-    const link = document.createElement('a');
-    link.textContent = text;
-    link.href = href;
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    return link;
-  };
   const aboutDataSource = document.createElement('p');
   aboutDataSource.className = 'plugin-control-about-source';
   aboutDataSource.append(
@@ -443,6 +526,18 @@ export function createPluginContent({
         );
       }
 
+      let endpoint: OverpassEndpointRequest;
+      try {
+        const endpointConfig = selectedEndpoint();
+        endpoint = resolveOverpassEndpoint(
+          endpointConfig,
+          endpointSettings.values[endpointConfig.id],
+        );
+      } catch (error) {
+        advancedOptions.open = true;
+        throw error;
+      }
+
       queryController = new AbortController();
       activeQueryController = queryController;
       setLoadingState(true);
@@ -455,7 +550,7 @@ export function createPluginContent({
         west: mapBounds.getWest(),
         north: mapBounds.getNorth(),
         east: mapBounds.getEast(),
-      }, query, queryController.signal);
+      }, query, queryController.signal, endpoint);
       if (queryController.signal.aborted) return;
       if (geojson.features.length === 0) {
         setStatus(UI_MESSAGES.noSupportedGeometry);
@@ -577,6 +672,36 @@ export function createPluginContent({
   setMode('picker');
 
   return { content, status };
+}
+
+const ENDPOINT_STORAGE_KEY = 'geolibre-overpass-plugin:endpoint';
+
+interface EndpointSettings {
+  id?: string;
+  /** Field values keyed by endpoint id, then by field name. */
+  values: Record<string, Record<string, string>>;
+}
+
+function loadEndpointSettings(): EndpointSettings {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(ENDPOINT_STORAGE_KEY) ?? '{}');
+    if (!stored || typeof stored !== 'object') return { values: {} };
+    const { id, values } = stored as Partial<EndpointSettings>;
+    return {
+      id: typeof id === 'string' ? id : undefined,
+      values: values && typeof values === 'object' ? values : {},
+    };
+  } catch {
+    return { values: {} };
+  }
+}
+
+function saveEndpointSettings(settings: EndpointSettings): void {
+  try {
+    localStorage.setItem(ENDPOINT_STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // Storage may be unavailable (private mode, sandboxed host); settings stay in memory.
+  }
 }
 
 function hashLayerName(layerName: string): string {
