@@ -7,8 +7,11 @@ import type {
   OverpassPosition,
 } from "./PluginModels";
 import { UI_MESSAGES } from "./messages";
-
-const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
+import {
+  DEFAULT_OVERPASS_ENDPOINT,
+  resolveOverpassEndpoint,
+  type OverpassEndpointRequest,
+} from "./overpass-endpoints";
 
 export const DEFAULT_OVERPASS_QUERY =
   '(\n  nwr;\n);';
@@ -257,10 +260,14 @@ export async function fetchOverpssData(
   bounds: OverpassBounds,
   query: string,
   signal?: AbortSignal,
+  endpoint: OverpassEndpointRequest = resolveOverpassEndpoint(DEFAULT_OVERPASS_ENDPOINT),
 ): Promise<OverpassFeatureCollection> {
-  const response = await fetch(OVERPASS_ENDPOINT, {
+  const response = await fetch(endpoint.url, {
     method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    headers: {
+      ...endpoint.headers,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
     body: new URLSearchParams({ data: buildOverpassQuery(query, bounds) }),
     signal,
   });
