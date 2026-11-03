@@ -1,0 +1,115 @@
+{
+  "defaultEndpointId": "overpass-api-de",
+  "endpoints": [
+    {
+      "id": "overpass-api-de",
+      "name": "overpass-api.de (FOSSGIS)",
+      "url": "https://overpass-api.de/api/interpreter",
+      "website": "https://overpass-api.de/",
+      "description": "Main public instance. Often overloaded; keep usage low."
+    },
+    {
+      "id": "vk-maps",
+      "name": "VK Maps (Russia)",
+      "url": "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
+      "website": "https://maps.mail.ru/osm/tools/overpass/",
+      "description": "Free, currently no request limits."
+    },
+    {
+      "id": "private-coffee",
+      "name": "Private.coffee",
+      "url": "https://overpass.private.coffee/api/interpreter",
+      "website": "https://overpass.private.coffee/",
+      "description": "Free, no rate limit. Notify the operator before large-scale use."
+    },
+    {
+      "id": "geofabrik",
+      "name": "Geofabrik",
+      "url": "https://overpass.geofabrik.de/{apiKey}/api/interpreter",
+      "website": "https://www.geofabrik.de/data/overpass-api.html",
+      "description": "Payment required.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "fairwaymapper",
+      "name": "FairwayMapper",
+      "url": "https://api.fairwaymapper.com/k/{apiKey}/api/interpreter",
+      "website": "https://www.fairwaymapper.com/api-access",
+      "description": "Free tier for active OSM contributors; sign up with an OSM account.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "tracestrack",
+      "name": "Tracestrack Maps",
+      "url": "https://api.tracestrack.com/overpass/{apiKey}/interpreter",
+      "website": "https://tracestrack.com",
+      "description": "Payment required.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "overspan",
+      "name": "Overspan",
+      "url": "https://api.overspan.dev/{apiKey}/api/interpreter",
+      "website": "https://overspan.dev/",
+      "description": "Payment required. Tiered monthly request limits.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "nextgis",
+      "name": "NextGIS",
+      "url": "https://overpass.nextgis.com/{apiKey}/api/interpreter",
+      "website": "https://my.nextgis.com/software?tab=api-keys",
+      "description": "Free API key after sign-up.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "mapsource",
+      "name": "Mapsource",
+      "url": "https://api.mapsource.io/{apiKey}/interpreter",
+      "website": "https://mapsource.io/pricing",
+      "description": "Free evaluation period; paid plans have higher limits.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "overpass-ch",
+      "name": "Overpass.ch",
+      "url": "https://api.overpass.ch/v1/{apiKey}/interpreter",
+      "website": "https://overpass.ch/pricing",
+      "description": "Free tier up to 10k requests/month, 30 requests/minute.",
+      "fields": [
+        { "name": "apiKey", "label": "API key", "type": "password", "required": true }
+      ]
+    },
+    {
+      "id": "custom",
+      "name": "Custom endpoint",
+      "url": "{url}",
+      "description": "Any Overpass API interpreter URL. The token, if set, is sent as a Bearer token.",
+      "fields": [
+        {
+          "name": "url",
+          "label": "Endpoint URL",
+          "type": "url",
+          "required": true,
+          "placeholder": "https://example.com/api/interpreter"
+        },
+        { "name": "token", "label": "Token (optional)", "type": "password", "required": false }
+      ],
+      "headers": {
+        "Authorization": "Bearer {token}"
+      }
+    }
+  ]
+}
